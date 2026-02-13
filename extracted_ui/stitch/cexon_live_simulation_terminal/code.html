@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cexon Live Simulation Terminal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f4af25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#0d0b06", // Adjusted slightly darker for deep terminal feel while keeping hue
+                        "surface-dark": "#1a160e",
+                        "terminal-black": "#050505",
+                        "neon-blue": "#00f0ff",
+                        "success": "#10b981",
+                        "danger": "#ef4444",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    boxShadow: {
+                        'glow': '0 0 15px rgba(244, 175, 37, 0.15)',
+                        'glow-strong': '0 0 25px rgba(244, 175, 37, 0.3)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for terminal feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a160e; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #332d22; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f4af25; 
+        }
+        
+        .grid-bg {
+            background-image: linear-gradient(rgba(244, 175, 37, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(244, 175, 37, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.15;
+        }
+
+        .dashed-line {
+            stroke-dasharray: 4, 4;
+            animation: dash 20s linear infinite;
+        }
+        
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -100;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-300 font-display h-screen flex flex-col overflow-hidden selection:bg-primary selection:text-black">
+<!-- Top Header Alert -->
+<div class="bg-primary/10 border-b border-primary/30 text-primary px-4 py-2 flex items-center justify-center gap-3 animate-pulse relative overflow-hidden shadow-glow">
+<span class="material-icons text-sm">warning</span>
+<span class="text-sm font-bold tracking-widest uppercase">Simulation Mode Active • Ghost Capital Deployed</span>
+<span class="material-icons text-sm">warning</span>
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent skew-x-12"></div>
+</div>
+<!-- Main Navigation / Top Bar -->
+<header class="h-14 border-b border-white/5 bg-surface-dark flex items-center px-6 justify-between shrink-0 z-20">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-primary font-bold text-xl tracking-tighter">
+<span class="material-icons">token</span> CEXON
+            </div>
+<nav class="hidden md:flex items-center gap-1 text-xs font-mono text-gray-400">
+<a class="hover:text-primary px-3 py-1 rounded hover:bg-white/5 transition-colors" href="#">TERMINAL</a>
+<a class="hover:text-primary px-3 py-1 rounded hover:bg-white/5 transition-colors" href="#">MARKETS</a>
+<a class="text-primary bg-primary/10 px-3 py-1 rounded border border-primary/20" href="#">SIMULATION</a>
+<a class="hover:text-primary px-3 py-1 rounded hover:bg-white/5 transition-colors" href="#">ALGO_BUILDER</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right hidden lg:block">
+<div class="text-[10px] text-gray-500 font-mono uppercase">System Latency</div>
+<div class="text-xs font-mono text-green-400 flex items-center justify-end gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> 12ms</div>
+</div>
+<div class="h-8 w-8 rounded bg-white/5 flex items-center justify-center border border-white/10">
+<span class="material-icons text-gray-400 text-sm">notifications</span>
+</div>
+<div class="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-black font-bold text-xs shadow-glow">
+                JS
+            </div>
+</div>
+</header>
+<!-- Main Workspace -->
+<main class="flex-1 flex overflow-hidden relative">
+<div class="scanline"></div> <!-- CRT effect overlay -->
+<!-- Left Column: Chart & Visualizer -->
+<div class="flex-1 flex flex-col min-w-0 border-r border-white/5">
+<!-- Simulation Metrics HUD -->
+<div class="h-24 bg-surface-dark border-b border-white/5 grid grid-cols-3 divide-x divide-white/5">
+<div class="p-4 flex flex-col justify-center relative overflow-hidden group">
+<div class="text-[10px] uppercase text-gray-500 font-mono tracking-wider mb-1">Sim Balance (Ghost)</div>
+<div class="text-2xl lg:text-3xl font-mono text-primary font-bold tracking-tight group-hover:drop-shadow-[0_0_8px_rgba(244,175,37,0.5)] transition-all">$100,000.00</div>
+<div class="absolute right-0 top-0 p-2 opacity-10">
+<span class="material-icons text-4xl">account_balance_wallet</span>
+</div>
+</div>
+<div class="p-4 flex flex-col justify-center relative overflow-hidden">
+<div class="text-[10px] uppercase text-gray-500 font-mono tracking-wider mb-1">Virtual PnL</div>
+<div class="text-2xl lg:text-3xl font-mono text-success font-bold tracking-tight flex items-center gap-2">
+                        +$1,240.50 
+                        <span class="text-xs bg-success/10 text-success px-1.5 py-0.5 rounded border border-success/20">+1.24%</span>
+</div>
+</div>
+<div class="p-4 flex flex-col justify-center relative overflow-hidden">
+<div class="text-[10px] uppercase text-gray-500 font-mono tracking-wider mb-1">Execution Success</div>
+<div class="text-2xl lg:text-3xl font-mono text-white font-bold tracking-tight">99.8<span class="text-lg text-gray-500">%</span></div>
+<div class="w-full bg-white/10 h-1 mt-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[99.8%] shadow-[0_0_10px_#f4af25]"></div>
+</div>
+</div>
+</div>
+<!-- Main Chart Area -->
+<div class="flex-1 relative bg-terminal-black grid-bg flex flex-col min-h-0">
+<!-- Chart Toolbar -->
+<div class="h-10 border-b border-white/5 flex items-center px-4 gap-4 text-xs font-mono text-gray-400 bg-surface-dark/50 backdrop-blur-sm z-10">
+<span class="text-white font-bold">BTC/USD-PERP</span>
+<div class="h-4 w-px bg-white/10 mx-2"></div>
+<span class="cursor-pointer hover:text-primary">1m</span>
+<span class="cursor-pointer hover:text-primary">5m</span>
+<span class="text-primary cursor-pointer border-b border-primary">15m</span>
+<span class="cursor-pointer hover:text-primary">1h</span>
+<span class="cursor-pointer hover:text-primary">4h</span>
+<div class="flex-1"></div>
+<span class="flex items-center gap-1 text-primary/70"><span class="material-icons text-[14px]">science</span> SIMULATION FEED</span>
+</div>
+<!-- Chart Placeholder -->
+<div class="flex-1 relative p-4 flex items-end justify-between gap-1 overflow-hidden">
+<!-- Watermark -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
+<h1 class="text-8xl font-display font-bold text-white/[0.03] -rotate-12 whitespace-nowrap">GHOST MODE</h1>
+</div>
+<!-- Simulated Candles (CSS Only Visualization) -->
+<div class="w-full h-full flex items-end gap-[2px] opacity-80 z-10 relative">
+<!-- Simple loop for generating varied bars -->
+<!-- Bar 1 --> <div class="w-3 bg-success/30 border border-success h-[40%] rounded-sm relative"><div class="absolute w-[1px] h-[140%] bg-success left-1/2 -top-[20%] -translate-x-1/2"></div></div>
+<!-- Bar 2 --> <div class="w-3 bg-danger/30 border border-danger h-[30%] rounded-sm relative"><div class="absolute w-[1px] h-[120%] bg-danger left-1/2 -top-[10%] -translate-x-1/2"></div></div>
+<!-- Bar 3 --> <div class="w-3 bg-success/30 border border-success h-[50%] rounded-sm relative"><div class="absolute w-[1px] h-[110%] bg-success left-1/2 -top-[5%] -translate-x-1/2"></div></div>
+<!-- Bar 4 --> <div class="w-3 bg-success/30 border border-success h-[55%] rounded-sm relative"><div class="absolute w-[1px] h-[120%] bg-success left-1/2 -top-[10%] -translate-x-1/2"></div></div>
+<!-- Bar 5 --> <div class="w-3 bg-danger/30 border border-danger h-[20%] rounded-sm relative"><div class="absolute w-[1px] h-[200%] bg-danger left-1/2 -top-[50%] -translate-x-1/2"></div></div>
+<!-- Bar 6 --> <div class="w-3 bg-danger/30 border border-danger h-[25%] rounded-sm relative"><div class="absolute w-[1px] h-[150%] bg-danger left-1/2 -top-[25%] -translate-x-1/2"></div></div>
+<!-- Bar 7 --> <div class="w-3 bg-success/30 border border-success h-[45%] rounded-sm relative"><div class="absolute w-[1px] h-[130%] bg-success left-1/2 -top-[15%] -translate-x-1/2"></div></div>
+<!-- Bar 8 --> <div class="w-3 bg-success/30 border border-success h-[60%] rounded-sm relative"><div class="absolute w-[1px] h-[110%] bg-success left-1/2 -top-[5%] -translate-x-1/2"></div></div>
+<!-- Bar 9 --> <div class="w-3 bg-success/30 border border-success h-[70%] rounded-sm relative"><div class="absolute w-[1px] h-[105%] bg-success left-1/2 -top-[2%] -translate-x-1/2"></div></div>
+<!-- Bar 10 --> <div class="w-3 bg-danger/30 border border-danger h-[50%] rounded-sm relative"><div class="absolute w-[1px] h-[130%] bg-danger left-1/2 -top-[15%] -translate-x-1/2"></div></div>
+<!-- More implied bars filling space -->
+<div class="flex-1 border-b border-dashed border-white/10 relative">
+<div class="absolute right-0 bottom-full mb-2 bg-surface-dark border border-primary/30 text-primary px-2 py-1 text-xs font-mono rounded shadow-lg flex items-center gap-2">
+<span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                                 $42,150.20
+                             </div>
+</div>
+</div>
+</div>
+<!-- Lane Visualizer (Center Overlay) -->
+<div class="h-48 border-t border-white/5 bg-surface-dark relative overflow-hidden flex flex-col">
+<div class="absolute top-2 left-4 text-[10px] font-mono text-gray-500 uppercase z-20 bg-surface-dark px-1">Simulated Routing Lanes</div>
+<div class="flex-1 flex relative">
+<!-- Lane 1 -->
+<div class="flex-1 border-r border-white/5 relative group">
+<div class="absolute bottom-2 left-2 text-[10px] font-mono text-gray-600">LANE_01</div>
+<svg class="w-full h-full absolute inset-0 pointer-events-none">
+<path class="dashed-line opacity-40" d="M0,100 Q100,20 200,80 T400,50" fill="none" stroke="#22d3ee" stroke-width="2"></path>
+</svg>
+<div class="absolute top-1/2 left-1/4 w-3 h-3 bg-cyan-500 rounded-full shadow-[0_0_10px_#22d3ee] animate-ping"></div>
+</div>
+<!-- Lane 2 -->
+<div class="flex-1 border-r border-white/5 relative bg-white/[0.02]">
+<div class="absolute bottom-2 left-2 text-[10px] font-mono text-primary/50">LANE_02 [ACTIVE]</div>
+<svg class="w-full h-full absolute inset-0 pointer-events-none">
+<path class="dashed-line opacity-60" d="M-50,150 C50,0 150,150 250,50" fill="none" stroke="#f4af25" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Lane 3 -->
+<div class="flex-1 border-r border-white/5 relative">
+<div class="absolute bottom-2 left-2 text-[10px] font-mono text-gray-600">LANE_03</div>
+<svg class="w-full h-full absolute inset-0 pointer-events-none">
+<path class="dashed-line opacity-20" d="M0,50 C100,100 200,0 300,50" fill="none" stroke="#22d3ee" stroke-width="2"></path>
+</svg>
+</div>
+<!-- Lane 4 -->
+<div class="flex-1 relative">
+<div class="absolute bottom-2 left-2 text-[10px] font-mono text-gray-600">LANE_04</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Controls Footer -->
+<div class="h-16 bg-surface-dark border-t border-white/5 px-6 flex items-center justify-between shrink-0">
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-2 text-xs font-mono text-gray-400 hover:text-white transition-colors">
+<span class="material-icons text-base">restart_alt</span>
+                        RESET BALANCE
+                    </button>
+<div class="h-8 w-px bg-white/10"></div>
+<div class="flex items-center gap-3">
+<span class="text-[10px] uppercase text-gray-500 font-bold">Playback Speed</span>
+<div class="flex bg-black rounded-lg p-1 border border-white/10">
+<button class="px-3 py-1 text-xs font-mono rounded bg-primary text-black font-bold shadow-sm">1x</button>
+<button class="px-3 py-1 text-xs font-mono rounded text-gray-400 hover:text-white hover:bg-white/5">2x</button>
+<button class="px-3 py-1 text-xs font-mono rounded text-gray-400 hover:text-white hover:bg-white/5">5x</button>
+<button class="px-3 py-1 text-xs font-mono rounded text-gray-400 hover:text-white hover:bg-white/5">MAX</button>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<div class="text-[10px] text-gray-500 uppercase">Data Source</div>
+<div class="text-xs text-white font-mono">HISTORICAL_PLAYBACK_2023</div>
+</div>
+<div class="w-2 h-2 bg-primary rounded-full animate-pulse shadow-glow"></div>
+</div>
+</div>
+</div>
+<!-- Right Column: Sim Log & Order Entry -->
+<div class="w-80 lg:w-96 bg-surface-dark border-l border-white/5 flex flex-col shrink-0 z-20">
+<!-- Order Entry Panel (Simulated) -->
+<div class="p-4 border-b border-white/5 bg-terminal-black">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-sm font-bold text-white uppercase tracking-wider">Place Sim Order</h3>
+<span class="text-[10px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">TESTNET</span>
+</div>
+<div class="space-y-3">
+<div class="grid grid-cols-2 gap-2 bg-surface-dark p-1 rounded-lg border border-white/5">
+<button class="py-2 text-xs font-bold rounded bg-success/20 text-success border border-success/30 hover:bg-success/30 transition-colors">BUY / LONG</button>
+<button class="py-2 text-xs font-bold rounded text-gray-500 hover:text-white transition-colors">SELL / SHORT</button>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] text-gray-500 font-mono uppercase">Order Type</label>
+<select class="w-full bg-surface-dark border border-white/10 rounded px-3 py-2 text-xs text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none">
+<option>Limit (Simulated)</option>
+<option>Market (Simulated)</option>
+<option>Stop Loss</option>
+</select>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="space-y-1">
+<label class="text-[10px] text-gray-500 font-mono uppercase">Price (USD)</label>
+<div class="relative">
+<input class="w-full bg-surface-dark border border-white/10 rounded px-3 py-2 text-xs font-mono text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none" type="text" value="42,150.00"/>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] text-gray-500 font-mono uppercase">Size (BTC)</label>
+<div class="relative">
+<input class="w-full bg-surface-dark border border-white/10 rounded px-3 py-2 text-xs font-mono text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none" type="text" value="0.5"/>
+</div>
+</div>
+</div>
+<div class="pt-2">
+<div class="flex justify-between text-[10px] text-gray-500 mb-1 font-mono">
+<span>Cost</span>
+<span>$21,075.00</span>
+</div>
+<div class="flex justify-between text-[10px] text-gray-500 mb-3 font-mono">
+<span>Est. Slippage (Sim)</span>
+<span class="text-orange-400">~0.05%</span>
+</div>
+<button class="w-full bg-primary hover:bg-yellow-500 text-black font-bold py-3 rounded shadow-glow-strong transition-all uppercase tracking-widest text-sm relative overflow-hidden group">
+<span class="relative z-10">Execute Sim Trade</span>
+<div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+</button>
+</div>
+</div>
+</div>
+<!-- Sim Log Header -->
+<div class="px-4 py-3 bg-surface-dark border-b border-white/5 flex justify-between items-center">
+<h3 class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+<span class="material-icons text-sm text-primary">terminal</span>
+                    Sim Event Log
+                </h3>
+<button class="text-[10px] text-gray-500 hover:text-white uppercase">Clear</button>
+</div>
+<!-- Scrolling Log Area -->
+<div class="flex-1 overflow-y-auto font-mono text-[11px] p-2 space-y-1 bg-black">
+<!-- Log Item -->
+<div class="flex gap-2 text-gray-500 hover:bg-white/5 p-1 rounded">
+<span class="opacity-50">[14:02:01.005]</span>
+<span class="text-blue-400">INFO</span>
+<span>Market data stream connected.</span>
+</div>
+<!-- Log Item -->
+<div class="flex gap-2 text-gray-400 hover:bg-white/5 p-1 rounded">
+<span class="opacity-50 text-gray-600">[14:02:04.220]</span>
+<span class="text-primary">WARN</span>
+<span>Latency spike detected: 45ms simulated.</span>
+</div>
+<!-- Log Item -->
+<div class="flex gap-2 text-gray-300 hover:bg-white/5 p-1 rounded bg-white/[0.02]">
+<span class="opacity-50 text-gray-600">[14:02:05.002]</span>
+<span class="text-success">EXEC</span>
+<span>Sim-Order Filled @ Lane 02</span>
+</div>
+<div class="pl-[108px] text-gray-600 text-[10px] pb-1">-&gt; ID: #88392-SIM | Price: 42,148.50</div>
+<!-- Log Item -->
+<div class="flex gap-2 text-gray-500 hover:bg-white/5 p-1 rounded">
+<span class="opacity-50">[14:02:05.015]</span>
+<span class="text-blue-400">NET</span>
+<span>Latency Emulated: 15ms</span>
+</div>
+<!-- Log Item -->
+<div class="flex gap-2 text-gray-500 hover:bg-white/5 p-1 rounded">
+<span class="opacity-50">[14:02:08.400]</span>
+<span class="text-gray-400">SYS</span>
+<span>Re-calibrating virtual order book...</span>
+</div>
+<!-- Log Item -->
+<div class="flex gap-2 text-gray-300 hover:bg-white/5 p-1 rounded">
+<span class="opacity-50 text-gray-600">[14:02:10.112]</span>
+<span class="text-success">EXEC</span>
+<span>Partial Fill (0.2 BTC)</span>
+</div>
+<!-- Log Item -->
+<div class="flex gap-2 text-gray-500 hover:bg-white/5 p-1 rounded">
+<span class="opacity-50">[14:02:12.005]</span>
+<span class="text-blue-400">INFO</span>
+<span>Playback speed: 1x -&gt; 2x</span>
+</div>
+<!-- Spacer for scroll visual -->
+<div class="h-20"></div>
+<!-- Blinking Cursor -->
+<div class="flex gap-2 text-primary p-1 animate-pulse">
+<span class="opacity-50">[14:02:13.000]</span>
+<span>_</span>
+</div>
+</div>
+<!-- Log Status Footer -->
+<div class="h-8 bg-surface-dark border-t border-white/5 px-2 flex items-center justify-between text-[10px] font-mono text-gray-500">
+<span>BUFFER: 12KB</span>
+<span class="text-green-500">ONLINE</span>
+</div>
+</div>
+</main>
+</body></html>

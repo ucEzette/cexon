@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cexon Performance Benchmark Tool</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0df2df",
+                        "primary-dim": "rgba(13, 242, 223, 0.1)",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#050505",
+                        "panel-dark": "#0a0f0f",
+                        "border-dark": "#333333",
+                        "sim-amber": "#ffb020",
+                        "sim-amber-dim": "rgba(255, 176, 32, 0.1)",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                    boxShadow: {
+                        "neon": "0 0 10px rgba(13, 242, 223, 0.3), 0 0 20px rgba(13, 242, 223, 0.1)",
+                        "neon-amber": "0 0 10px rgba(255, 176, 32, 0.3), 0 0 20px rgba(255, 176, 32, 0.1)",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for cyberpunk feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0f0f;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0df2df;
+        }
+        
+        .grid-bg {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, #151515 1px, transparent 1px),
+                linear-gradient(to bottom, #151515 1px, transparent 1px);
+        }
+
+        .chart-line-clip {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 2s linear forwards;
+        }
+        
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-300 min-h-screen font-display flex flex-col overflow-hidden">
+<!-- Top Navigation / Header -->
+<header class="h-16 border-b border-border-dark bg-panel-dark/50 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-primary/20 flex items-center justify-center border border-primary/50 shadow-neon">
+<span class="material-icons-round text-primary text-lg">polymer</span>
+</div>
+<h1 class="font-bold text-xl tracking-wide text-white"><span class="text-primary">CEXON</span> TERMINAL</h1>
+</div>
+<div class="h-6 w-px bg-border-dark mx-2"></div>
+<nav class="flex items-center gap-2 text-sm font-mono text-slate-500">
+<span class="hover:text-primary cursor-pointer transition-colors">Strategies</span>
+<span class="material-icons-round text-xs">chevron_right</span>
+<span class="hover:text-primary cursor-pointer transition-colors">Alpha-09</span>
+<span class="material-icons-round text-xs">chevron_right</span>
+<span class="text-primary">Benchmark</span>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex bg-background-dark border border-border-dark rounded-lg p-1">
+<button class="px-3 py-1 text-xs font-mono rounded hover:bg-white/5 transition-colors text-slate-400">1H</button>
+<button class="px-3 py-1 text-xs font-mono rounded bg-primary/20 text-primary border border-primary/30 shadow-neon">24H</button>
+<button class="px-3 py-1 text-xs font-mono rounded hover:bg-white/5 transition-colors text-slate-400">7D</button>
+<button class="px-3 py-1 text-xs font-mono rounded hover:bg-white/5 transition-colors text-slate-400">30D</button>
+</div>
+<div class="h-8 w-8 rounded-full bg-border-dark flex items-center justify-center border border-slate-700">
+<span class="material-icons-round text-sm text-slate-400">notifications</span>
+</div>
+<div class="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/50">
+<span class="material-icons-round text-sm text-primary">person</span>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 p-6 overflow-y-auto grid-bg">
+<div class="max-w-[1600px] mx-auto space-y-6">
+<!-- Page Title Row -->
+<div class="flex justify-between items-end mb-2">
+<div>
+<h2 class="text-2xl font-bold text-white tracking-tight">Performance Benchmarking: Simulation vs. Live Market</h2>
+<p class="text-slate-500 font-mono text-sm mt-1">Comparing backtest integrity against real-time execution environment.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 border border-border-dark rounded bg-panel-dark hover:border-sim-amber/50 transition-colors group">
+<span class="w-2 h-2 rounded-full bg-sim-amber shadow-neon-amber"></span>
+<span class="text-xs font-mono text-slate-300 group-hover:text-sim-amber">Export Sim Data</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 border border-primary/30 rounded bg-primary-dim hover:bg-primary/20 transition-colors shadow-neon group">
+<span class="material-icons-round text-sm text-primary">download</span>
+<span class="text-xs font-mono text-primary font-bold">Export Report</span>
+</button>
+</div>
+</div>
+<!-- Top Section: Comparison Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- APR Comparison Card -->
+<div class="bg-panel-dark border border-border-dark rounded-lg p-5 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
+<span class="material-icons-round text-6xl text-slate-700">show_chart</span>
+</div>
+<h3 class="text-sm font-mono text-slate-400 uppercase tracking-wider mb-4 border-b border-border-dark pb-2">Annual Percentage Rate (APR)</h3>
+<div class="grid grid-cols-2 gap-8 relative z-10">
+<!-- Simulated -->
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="w-2 h-2 bg-sim-amber rounded-full"></span>
+<span class="text-xs text-sim-amber font-mono">SIMULATED</span>
+</div>
+<div class="text-4xl font-bold text-white font-mono tracking-tighter">42.5<span class="text-lg text-slate-500">%</span></div>
+<div class="text-xs text-slate-500 mt-1 font-mono">Based on historical ticks</div>
+</div>
+<!-- Real Market -->
+<div class="relative">
+<div class="absolute -left-4 top-2 bottom-2 w-px bg-border-dark"></div>
+<div class="flex items-center gap-2 mb-1">
+<span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+<span class="text-xs text-primary font-mono font-bold">REAL-MARKET</span>
+</div>
+<div class="text-4xl font-bold text-white font-mono tracking-tighter">38.2<span class="text-lg text-slate-500">%</span></div>
+<div class="text-xs text-red-400 mt-1 font-mono flex items-center gap-1">
+<span class="material-icons-round text-[10px]">arrow_downward</span>
+                                4.3% Deviation
+                            </div>
+</div>
+</div>
+</div>
+<!-- Drawdown Comparison Card -->
+<div class="bg-panel-dark border border-border-dark rounded-lg p-5 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
+<span class="material-icons-round text-6xl text-slate-700">waterfall_chart</span>
+</div>
+<h3 class="text-sm font-mono text-slate-400 uppercase tracking-wider mb-4 border-b border-border-dark pb-2">Max Drawdown Analysis</h3>
+<div class="grid grid-cols-2 gap-8 relative z-10">
+<!-- Simulated -->
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="w-2 h-2 bg-sim-amber rounded-full"></span>
+<span class="text-xs text-sim-amber font-mono">SIMULATED</span>
+</div>
+<div class="text-4xl font-bold text-white font-mono tracking-tighter">-12.0<span class="text-lg text-slate-500">%</span></div>
+<div class="text-xs text-slate-500 mt-1 font-mono">Peak to trough</div>
+</div>
+<!-- Real Market -->
+<div class="relative">
+<div class="absolute -left-4 top-2 bottom-2 w-px bg-border-dark"></div>
+<div class="flex items-center gap-2 mb-1">
+<span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+<span class="text-xs text-primary font-mono font-bold">REAL-MARKET</span>
+</div>
+<div class="text-4xl font-bold text-white font-mono tracking-tighter">-14.5<span class="text-lg text-slate-500">%</span></div>
+<div class="text-xs text-red-400 mt-1 font-mono flex items-center gap-1">
+<span class="material-icons-round text-[10px]">warning</span>
+                                High Volatility Impact
+                            </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Center Section: Overlay Chart -->
+<div class="bg-panel-dark border border-border-dark rounded-lg p-6 relative">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-bold text-white">Equity Curve Projection</h3>
+<div class="flex items-center gap-4 mt-2">
+<div class="flex items-center gap-2">
+<div class="w-3 h-1 bg-sim-amber"></div>
+<span class="text-xs text-slate-400 font-mono">Simulation</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-1 bg-primary shadow-neon"></div>
+<span class="text-xs text-slate-400 font-mono">Live Execution</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-1 border-t border-dashed border-slate-600"></div>
+<span class="text-xs text-slate-400 font-mono">Benchmark (ETH)</span>
+</div>
+</div>
+</div>
+<div class="bg-background-dark border border-border-dark rounded px-3 py-1 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span class="text-xs font-mono text-slate-300">Live Feed Active</span>
+</div>
+</div>
+<!-- Chart Container -->
+<div class="relative w-full h-[400px] bg-background-dark/50 rounded border border-border-dark overflow-hidden">
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between p-4 opacity-20 pointer-events-none">
+<div class="border-b border-dashed border-slate-500 w-full h-px"></div>
+<div class="border-b border-dashed border-slate-500 w-full h-px"></div>
+<div class="border-b border-dashed border-slate-500 w-full h-px"></div>
+<div class="border-b border-dashed border-slate-500 w-full h-px"></div>
+<div class="border-b border-dashed border-slate-500 w-full h-px"></div>
+</div>
+<!-- SVG Chart Lines -->
+<svg class="absolute inset-0 w-full h-full p-4 overflow-visible" preserveaspectratio="none">
+<!-- Benchmark Line (Dashed Grey) -->
+<path d="M0,350 Q150,340 300,300 T600,280 T900,250 T1200,320 T1500,280" fill="none" opacity="0.5" stroke="#666" stroke-dasharray="4,4" stroke-width="1.5"></path>
+<!-- Simulation Line (Amber) -->
+<path d="M0,350 Q150,300 300,250 T600,180 T900,120 T1200,80 T1500,40" fill="none" opacity="0.8" stroke="#ffb020" stroke-width="2"></path>
+<!-- Real Market Line (Primary/Turquoise) -->
+<path class="drop-shadow-[0_0_8px_rgba(13,242,223,0.5)]" d="M0,350 Q150,310 300,270 T600,200 T900,150 T1200,100 T1500,70" fill="none" stroke="#0df2df" stroke-width="3"></path>
+<!-- Fill below Real Market -->
+<path d="M0,350 Q150,310 300,270 T600,200 T900,150 T1200,100 T1500,70 V400 H0 Z" fill="url(#gradientPrimary)" opacity="0.1"></path>
+<defs>
+<lineargradient id="gradientPrimary" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#0df2df;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#0df2df;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+<!-- Drift Analysis Tooltip Marker (Static for visual) -->
+<line stroke="#333" stroke-dasharray="2,2" stroke-width="1" x1="900" x2="900" y1="0" y2="400"></line>
+<circle cx="900" cy="120" fill="#ffb020" r="4"></circle>
+<circle class="animate-pulse" cx="900" cy="150" fill="#0df2df" r="4"></circle>
+</svg>
+<!-- Hover Tooltip -->
+<div class="absolute top-[80px] left-[920px] bg-panel-dark border border-border-dark p-3 rounded shadow-xl z-20 backdrop-blur-sm bg-opacity-90">
+<h4 class="text-xs font-bold text-white mb-2 border-b border-border-dark pb-1">Drift Analysis</h4>
+<div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs font-mono">
+<span class="text-slate-400">Sim Value:</span>
+<span class="text-sim-amber text-right">$14,250</span>
+<span class="text-slate-400">Real Value:</span>
+<span class="text-primary text-right">$13,890</span>
+<span class="text-slate-400 mt-1 pt-1 border-t border-border-dark">Diff:</span>
+<span class="text-red-400 text-right mt-1 pt-1 border-t border-border-dark">-2.52%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Bottom Left: Efficiency Stats -->
+<div class="lg:col-span-1 bg-panel-dark border border-border-dark rounded-lg p-5 flex flex-col h-full">
+<h3 class="text-sm font-mono text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+<span class="material-icons-round text-base">tune</span>
+                        Execution Drift Metrics
+                    </h3>
+<div class="flex-1 space-y-4">
+<!-- Metric 1 -->
+<div class="p-3 bg-background-dark rounded border border-border-dark hover:border-primary/30 transition-colors">
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-mono text-slate-400">Avg. Slippage Variance</span>
+<span class="text-xs font-mono text-red-400">+0.04%</span>
+</div>
+<div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-primary to-red-400 h-full w-[35%]"></div>
+</div>
+<div class="mt-2 text-[10px] text-slate-500 font-mono">Acceptable Range: &lt; 0.05%</div>
+</div>
+<!-- Metric 2 -->
+<div class="p-3 bg-background-dark rounded border border-border-dark hover:border-primary/30 transition-colors">
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-mono text-slate-400">Latency Impact (PnL)</span>
+<span class="text-xs font-mono text-red-400">-2.1%</span>
+</div>
+<div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-red-500 h-full w-[65%]"></div>
+</div>
+<div class="mt-2 text-[10px] text-slate-500 font-mono">Critical threshold exceeded</div>
+</div>
+<!-- Metric 3 -->
+<div class="p-3 bg-background-dark rounded border border-border-dark hover:border-primary/30 transition-colors">
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-mono text-slate-400">Lane Fill Consistency</span>
+<span class="text-xs font-mono text-primary">94.5%</span>
+</div>
+<div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[94.5%] shadow-[0_0_10px_#0df2df]"></div>
+</div>
+<div class="mt-2 text-[10px] text-slate-500 font-mono">Performing optimally</div>
+</div>
+</div>
+</div>
+<!-- Bottom Right: Latency Heatmap -->
+<div class="lg:col-span-2 bg-panel-dark border border-border-dark rounded-lg p-5 flex flex-col h-full">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-sm font-mono text-slate-400 uppercase tracking-wider flex items-center gap-2">
+<span class="material-icons-round text-base">grid_on</span>
+                            Latency Sensitivity Heatmap
+                        </h3>
+<div class="flex items-center gap-2 text-[10px] font-mono text-slate-500">
+<span>Good</span>
+<div class="w-16 h-2 rounded bg-gradient-to-r from-primary via-slate-700 to-red-900"></div>
+<span>Poor</span>
+</div>
+</div>
+<div class="flex-1 relative">
+<!-- Heatmap Grid -->
+<div class="w-full h-full flex flex-col justify-between">
+<!-- Row 1 -->
+<div class="flex h-[20%] w-full mb-1 gap-1">
+<div class="flex-1 bg-primary/90 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-primary/80 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-primary/60 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-slate-700 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-red-900/50 hover:opacity-80 transition-opacity rounded-sm"></div>
+</div>
+<!-- Row 2 -->
+<div class="flex h-[20%] w-full mb-1 gap-1">
+<div class="flex-1 bg-primary/80 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-primary/70 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-primary/40 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-red-900/40 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-red-900/70 hover:opacity-80 transition-opacity rounded-sm"></div>
+</div>
+<!-- Row 3 -->
+<div class="flex h-[20%] w-full mb-1 gap-1">
+<div class="flex-1 bg-primary/70 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-primary/50 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-slate-800 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-red-900/60 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-red-900/90 hover:opacity-80 transition-opacity rounded-sm"></div>
+</div>
+<!-- Row 4 -->
+<div class="flex h-[20%] w-full mb-1 gap-1">
+<div class="flex-1 bg-primary/60 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-slate-800 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-red-900/40 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-red-900/80 hover:opacity-80 transition-opacity rounded-sm"></div>
+<div class="flex-1 bg-red-900 hover:opacity-80 transition-opacity rounded-sm"></div>
+</div>
+</div>
+<!-- X Axis Labels -->
+<div class="flex justify-between mt-2 text-[10px] font-mono text-slate-500">
+<span>5ms</span>
+<span>50ms</span>
+<span>150ms</span>
+<span>300ms</span>
+<span>500ms</span>
+</div>
+<!-- Y Axis Label (Rotated) -->
+<div class="absolute -left-6 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] font-mono text-slate-500 whitespace-nowrap">
+                            Strategy Performance
+                        </div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
