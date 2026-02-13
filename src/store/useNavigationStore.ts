@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 
-export type ViewType = 'Trading' | 'Portfolio' | 'Analytics' | 'Stake';
+export type ViewType = 'Trading' | 'Portfolio' | 'Analytics' | 'Stake' | 'Settings';
 
 interface NavigationState {
     activeView: ViewType;

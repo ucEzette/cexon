@@ -90,4 +90,12 @@
   .shadow-glow-sm {
     box-shadow: 0 0 5px rgba(0, 238, 255, 0.4);
   }
+
+  .drop-shadow-glow {
+    filter: drop-shadow(0 0 8px rgba(0, 238, 255, 0.4));
+  }
+
+  .drop-shadow-glow-lg {
+    filter: drop-shadow(0 0 15px rgba(0, 238, 255, 0.5));
+  }
 }

@@ -9,24 +9,33 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 import { useNavigationStore, ViewType } from '@/store/useNavigationStore';
+import { usePrivy } from '@privy-io/react-auth';
 
 export const Header = () => {
+    const { login, authenticated, user, logout } = usePrivy();
     const { userBalance, mintDemoTokens, toggleKillSwitch, isKillSwitchActive } = useGlobalStore();
     const { gasToken, isSponsored, setGasToken } = useSettingsStore();
     const { activeView, setActiveView } = useNavigationStore();
     const [isPasskeyOpen, setIsPasskeyOpen] = useState(false);
     const [isGasDropdownOpen, setIsGasDropdownOpen] = useState(false);
 
+    const truncatedAddress = user?.wallet?.address
+        ? `${user.wallet.address.slice(0, 6)}...${user.wallet.address.slice(-4)}`
+        : 'Connect';
+
     const navItems: ViewType[] = ['Trading', 'Portfolio', 'Analytics', 'Stake'];
 
     return (
         <header className="h-14 border-b border-surface-border bg-surface-dark/80 backdrop-blur-md flex items-center justify-between px-6 z-50 shrink-0 sticky top-0">
             <div className="flex items-center gap-8">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/30">
-                        <Cpu className="text-primary w-5 h-5" />
+                <div className="flex items-center gap-3">
+                    <div className="h-9 flex items-center">
+                        <img
+                            src="/cexonLOGO (1).png"
+                            className="h-full w-auto object-contain filter drop-shadow-glow z-50 pointer-events-none"
+                            alt="Cexon Terminal"
+                        />
                     </div>
-                    <h1 className="text-2xl font-bold tracking-[0.2em] text-white font-display">CEXON</h1>
                 </div>
 
                 <nav className="hidden lg:flex items-center gap-6 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500">
@@ -54,17 +63,29 @@ export const Header = () => {
             </div>
 
             <div className="flex items-center gap-6 text-xs font-mono">
-                {/* Wallet / Passkey Status */}
+                {/* Wallet / Privy Status */}
                 <div
-                    onClick={() => setIsPasskeyOpen(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded bg-surface-border/30 border border-surface-border/50 cursor-pointer hover:border-primary/30 transition-all group"
+                    onClick={() => !authenticated ? login() : setIsPasskeyOpen(true)}
+                    className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded border transition-all cursor-pointer group",
+                        authenticated
+                            ? "bg-primary/10 border-primary/30"
+                            : "bg-surface-border/30 border-surface-border/50 hover:border-primary/30"
+                    )}
                 >
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        {authenticated && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>}
+                        <span className={cn(
+                            "relative inline-flex rounded-full h-2 w-2",
+                            authenticated ? "bg-green-500" : "bg-slate-500"
+                        )}></span>
                     </span>
-                    <span className="text-slate-400 group-hover:text-slate-300">WALLET:</span>
-                    <span className="text-white font-bold tracking-tight">FaceID ACTIVE</span>
+                    <span className="text-slate-400 group-hover:text-slate-300 uppercase tracking-tighter text-[9px] font-bold">
+                        {authenticated ? 'WALLET' : 'AUTH'}
+                    </span>
+                    <span className="text-white font-bold tracking-tight">
+                        {truncatedAddress}
+                    </span>
                 </div>
 
                 {/* Gas / Testnet Tools Dropdown */}
@@ -159,11 +180,17 @@ export const Header = () => {
                     )}
                 </div>
 
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-blue-600 p-[1px] cursor-pointer hover:shadow-glow-sm transition-shadow">
+                <div
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveView('Settings');
+                    }}
+                    className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-blue-600 p-[1px] cursor-pointer hover:shadow-glow-sm transition-shadow active:scale-95 z-50"
+                >
                     <div className="w-full h-full rounded-full bg-surface-dark flex items-center justify-center overflow-hidden">
                         <img
                             className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity"
-                            alt="User"
+                            alt="User Profile"
                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDK63RxlF-2H1E40Mm5TylWdjf35LXsP8zkQ49XXfC1AVIoHPW_Rg57WW1q3tplzF4hf9j5hJ3Pa_X3y3UtUyggq8i5pFinAmUgLxf5o-I2sS1Y5B8mTT_KH1PpDhkESYXbHMBi1w3PXUL_yzlBurEsxS7zMUk3Z-WV2SaUs_rkQUWyd0QveEAbkM5ah0uv18PW_T-XHUKmGUpUjgGrUr6MoxdBIEXZ69OXAkhXLnfTrBRnXP8t7jbLzE-QNZz074txcvbfrKg3BOI"
                         />
                     </div>

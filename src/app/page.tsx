@@ -15,6 +15,7 @@ import { useNavigationStore } from '@/store/useNavigationStore';
 import { PortfolioView } from '@/features/portfolio/PortfolioView';
 import { AnalyticsView } from '@/features/analytics/AnalyticsView';
 import { StakeView } from '@/features/stake/StakeView';
+import { SettingsView } from '@/features/profile/SettingsView';
 
 export default function Home() {
     const { price } = useMarketStore();
@@ -29,6 +30,8 @@ export default function Home() {
                 return <AnalyticsView />;
             case 'Stake':
                 return <StakeView />;
+            case 'Settings':
+                return <SettingsView />;
             case 'Trading':
             default:
                 return (
@@ -82,7 +85,7 @@ export default function Home() {
                             <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
                                 {activeTab === 'chart' ? (
                                     <div className="flex-1 flex flex-col bg-grid-slate-900/[0.05] relative overflow-hidden">
-                                        <div className="absolute top-4 left-4 z-10 pointer-events-none">
+                                        <div className="absolute top-12 left-4 z-10 pointer-events-none">
                                             <div className="text-[10px] text-primary/60 font-mono mb-1">REAL-TIME DATA FEED</div>
                                             <div className="flex gap-4 font-mono text-xs">
                                                 <span className="text-slate-400">O <span className="text-white">2408.2</span></span>
