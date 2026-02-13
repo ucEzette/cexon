@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useWallets } from '@privy-io/react-auth';
+import { SmartSplitAgent } from './SmartSplitAgent';
 
 export const OrderForm = () => {
     const { wallets } = useWallets();
@@ -20,9 +21,6 @@ export const OrderForm = () => {
     const [isAgentMode, setIsAgentMode] = useState(false);
     const [amount, setAmount] = useState('4.5');
     const [orderPrice, setOrderPrice] = useState('2410.00');
-
-    // Auto-update price when market moves (optional, common in some terminals)
-    // useEffect(() => { setOrderPrice(price.toFixed(2)); }, [price]);
 
     const total = (parseFloat(amount) || 0) * (parseFloat(orderPrice) || 0);
     const nextLane = lanes.find(l => l.status === 'idle');
@@ -69,6 +67,43 @@ export const OrderForm = () => {
         } catch (err) {
             console.error(err);
             alert("Execution failed: User rejected or network error.");
+        }
+    };
+
+    const handleAutoSplit = async (splitAmount: number) => {
+        if (isKillSwitchActive) return;
+        const wallet = wallets[0];
+        if (!wallet) return;
+
+        const provider = await wallet.getEthereumProvider();
+
+        // Execute 4 parallel trades
+        for (let i = 0; i < 4; i++) {
+            const orderId = `split-${Math.random().toString(36).substring(7)}`;
+            const tradeParams = {
+                id: orderId,
+                side,
+                amount: splitAmount,
+                price: parseFloat(orderPrice),
+            };
+
+            const newOrder: Order = {
+                id: orderId,
+                pair: 'ETH / USDC',
+                side: tradeParams.side,
+                price: tradeParams.price,
+                amount: tradeParams.amount,
+                total: splitAmount * tradeParams.price,
+                status: 'open',
+                timestamp: Date.now(),
+            };
+
+            addOrder(newOrder);
+
+            // Fire and forget (parallel)
+            processTrade(tradeParams, provider).then(laneId => {
+                if (laneId) fillOrder(orderId, laneId);
+            });
         }
     };
 
@@ -237,7 +272,15 @@ export const OrderForm = () => {
                 </div>
             </div>
 
-            <div className="mt-auto pt-6">
+            <div className="mt-auto pt-4 flex flex-col">
+                {/* Smart Split Agent Callout */}
+                <SmartSplitAgent
+                    amount={parseFloat(amount) || 0}
+                    price={parseFloat(orderPrice) || 0}
+                    side={side}
+                    onSplit={handleAutoSplit}
+                />
+
                 <div className="flex items-center justify-between text-[11px] text-slate-500 mb-3 font-mono">
                     <span>Est. Fee</span>
                     <span>0.0012 ETH</span>

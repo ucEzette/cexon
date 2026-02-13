@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGlobalStore } from '@/store/useGlobalStore';
 import { useSettingsStore } from '@/features/settings/useSettingsStore';
 import { PasskeyManager } from '@/features/passkey/PasskeyManager';
-import { ChevronDown, Cpu, FlaskConical, Sparkles, Coins, ShieldAlert } from 'lucide-react';
+import { ChevronDown, Cpu, FlaskConical, Sparkles, Coins, ShieldAlert, Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 import { useNavigationStore, ViewType } from '@/store/useNavigationStore';
 import { usePrivy } from '@privy-io/react-auth';
+import { CommandTerminal } from '@/features/terminal/CommandTerminal';
 
 export const Header = () => {
     const { login, authenticated, user, logout } = usePrivy();
@@ -18,6 +19,18 @@ export const Header = () => {
     const { activeView, setActiveView } = useNavigationStore();
     const [isPasskeyOpen, setIsPasskeyOpen] = useState(false);
     const [isGasDropdownOpen, setIsGasDropdownOpen] = useState(false);
+    const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsTerminalOpen(prev => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     const truncatedAddress = user?.wallet?.address
         ? `${user.wallet.address.slice(0, 6)}...${user.wallet.address.slice(-4)}`
@@ -63,6 +76,19 @@ export const Header = () => {
             </div>
 
             <div className="flex items-center gap-6 text-xs font-mono">
+                {/* Command Terminal Trigger */}
+                <button
+                    onClick={() => setIsTerminalOpen(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded bg-white/5 border border-white/10 text-slate-400 hover:text-primary hover:border-primary/50 transition-all group"
+                >
+                    <Command className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">TERMINAL</span>
+                    <div className="flex items-center gap-1 px-1 py-0.5 rounded bg-black/40 border border-white/5 text-[8px] opacity-60 group-hover:opacity-100">
+                        <span>⌘</span>
+                        <span>K</span>
+                    </div>
+                </button>
+
                 {/* Wallet / Privy Status */}
                 <div
                     onClick={() => !authenticated ? login() : setIsPasskeyOpen(true)}
@@ -198,6 +224,7 @@ export const Header = () => {
             </div>
 
             <PasskeyManager isOpen={isPasskeyOpen} onClose={() => setIsPasskeyOpen(false)} />
+            <CommandTerminal isOpen={isTerminalOpen} onClose={() => setIsTerminalOpen(false)} />
         </header>
     );
 };
