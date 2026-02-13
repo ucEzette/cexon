@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cexon Global Network Latency Map</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#06e8f9",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0f2123", // Using the user provided bg-dark, but the prompt description says #050505. I will mix them to create depth.
+                        "surface-dark": "#0a1618", // Slightly darker/lighter variant for panels
+                        "border-dark": "#1a383b",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    animation: {
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'ping-slow': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+                        'dash': 'dash 2s linear infinite',
+                    },
+                    keyframes: {
+                        dash: {
+                            '0%': { strokeDashoffset: '1000' },
+                            '100%': { strokeDashoffset: '0' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .text-glow {
+                text-shadow: 0 0 10px rgba(6, 232, 249, 0.5);
+            }
+            .border-glow {
+                box-shadow: 0 0 5px rgba(6, 232, 249, 0.3), inset 0 0 5px rgba(6, 232, 249, 0.1);
+            }
+            .bg-grid-pattern {
+                background-image: linear-gradient(to right, #1a383b 1px, transparent 1px),
+                                  linear-gradient(to bottom, #1a383b 1px, transparent 1px);
+                background-size: 40px 40px;
+                mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .map-dot {
+                @apply absolute w-2 h-2 rounded-full bg-primary;
+                box-shadow: 0 0 10px #06e8f9, 0 0 20px #06e8f9;
+            }
+            .chart-grid line {
+                stroke: #1a383b;
+                stroke-dasharray: 4;
+            }
+            .chart-line {
+                stroke: #06e8f9;
+                stroke-width: 2;
+                fill: none;
+                filter: drop-shadow(0 0 4px rgba(6, 232, 249, 0.5));
+            }
+            .chart-area {
+                fill: url(#gradient);
+                opacity: 0.2;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-white h-screen flex flex-col overflow-hidden selection:bg-primary selection:text-black">
+<!-- Header / Top Metric Bar -->
+<header class="h-16 border-b border-border-dark bg-surface-dark/90 backdrop-blur-md flex items-center justify-between px-6 z-20 shrink-0">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary/20 rounded flex items-center justify-center border border-primary/50">
+<span class="material-icons-round text-primary text-lg">hub</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-white uppercase"><span class="text-primary">Cexon</span> Network</h1>
+</div>
+<div class="flex items-center gap-8 font-mono text-sm">
+<div class="flex flex-col items-end">
+<span class="text-xs text-slate-400 font-display uppercase tracking-wider">Global Avg Latency</span>
+<span class="text-primary font-bold text-glow">18.4ms</span>
+</div>
+<div class="w-px h-8 bg-border-dark"></div>
+<div class="flex flex-col items-end">
+<span class="text-xs text-slate-400 font-display uppercase tracking-wider">Top Region</span>
+<span class="text-white font-bold">APAC <span class="text-emerald-400 text-xs">▲ 12%</span></span>
+</div>
+<div class="w-px h-8 bg-border-dark"></div>
+<div class="flex flex-col items-end">
+<span class="text-xs text-slate-400 font-display uppercase tracking-wider">Active RPC Nodes</span>
+<span class="text-white font-bold">124 <span class="text-xs text-slate-500 font-normal">/ 128</span></span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-3 py-1.5 rounded bg-primary/10 hover:bg-primary/20 border border-primary/30 text-primary text-xs font-mono transition-colors uppercase tracking-widest">
+                Refresh Node List
+            </button>
+<div class="w-8 h-8 rounded-full bg-surface-dark border border-border-dark flex items-center justify-center relative">
+<span class="material-icons-round text-slate-400 text-sm">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+</div>
+</div>
+</header>
+<main class="flex-1 flex overflow-hidden relative">
+<!-- Background Grid Pattern -->
+<div class="absolute inset-0 bg-grid-pattern opacity-20 pointer-events-none z-0"></div>
+<!-- Center: Map Visualization -->
+<div class="flex-1 relative z-10 flex flex-col">
+<!-- Map Container -->
+<div class="flex-1 relative overflow-hidden flex items-center justify-center bg-[#050505]">
+<!-- Stylized World Map SVG -->
+<div class="relative w-full h-full max-w-5xl max-h-[80vh]">
+<!-- World Map Background Image - Abstract Dark Map -->
+<img alt="Dark stylized vector world map silhouette" class="w-full h-full object-contain opacity-20 invert grayscale contrast-150" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSBLb4sH5uw0ZgM9ObPM0vr_48icQdeaxQKY1Ky9EV3tKen32wrLF-VvaAJndZmMUrM_BjQ_d9aip9cpEtXMhaxkdlElv6GcWnEVRaJwysHnOknT9i1A8XQv243lpnOuS-BjmKbJjoYscPIBPFFI3-8YKYj6IJiP5spggaBt5Kr2g6nm1ZCUMGLyMzbH6SvUENPcAVoK5nbgyi4E6cj0NqfzGqHyWX07TUHOX3UvkudkhRk4zmqLMIURLPYUZ3Z9HhPzfnxtlp-os" style="filter: invert(1) brightness(0.3) contrast(1.2);"/>
+<!-- Overlay SVG for Connections -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 10;">
+<defs>
+<lineargradient id="lineGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" style="stop-color:transparent;stop-opacity:0"></stop>
+<stop offset="50%" style="stop-color:#06e8f9;stop-opacity:0.8"></stop>
+<stop offset="100%" style="stop-color:transparent;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+<!-- Arc: User (London approx) to NY -->
+<path class="animate-[pulse_3s_ease-in-out_infinite]" d="M 480 180 Q 400 100 320 200" fill="none" stroke="url(#lineGradient)" stroke-dasharray="5 5" stroke-width="1.5"></path>
+<!-- Arc: User to Tokyo -->
+<path d="M 480 180 Q 650 50 820 210" fill="none" stroke="#06e8f9" stroke-opacity="0.4" stroke-width="1"></path>
+<!-- Arc: User to Singapore -->
+<path d="M 480 180 Q 600 300 750 320" fill="none" stroke="#06e8f9" stroke-opacity="0.3" stroke-width="1"></path>
+</svg>
+<!-- Nodes -->
+<!-- New York -->
+<div class="absolute top-[32%] left-[26%] group">
+<div class="map-dot animate-pulse-fast"></div>
+<div class="absolute w-4 h-4 -top-1 -left-1 border border-primary rounded-full animate-ping-slow opacity-50"></div>
+<div class="absolute top-4 left-4 bg-surface-dark/90 border border-primary/30 p-2 rounded hidden group-hover:block w-32 backdrop-blur-sm z-50">
+<div class="text-xs text-slate-400 font-mono">New York</div>
+<div class="text-sm font-bold text-white">12ms <span class="text-emerald-400">●</span></div>
+</div>
+</div>
+<!-- London (User Location) -->
+<div class="absolute top-[28%] left-[48%] group">
+<div class="w-3 h-3 rounded-full bg-white absolute z-20 shadow-[0_0_15px_rgba(255,255,255,0.8)]"></div>
+<div class="text-[10px] font-mono text-white absolute -top-5 -left-4 uppercase tracking-wider opacity-70">You</div>
+</div>
+<!-- Frankfurt -->
+<div class="absolute top-[30%] left-[51%] group">
+<div class="map-dot animate-pulse-fast delay-75"></div>
+<div class="absolute w-4 h-4 -top-1 -left-1 border border-primary rounded-full animate-ping-slow opacity-50 delay-75"></div>
+</div>
+<!-- Tokyo -->
+<div class="absolute top-[34%] left-[82%] group">
+<div class="map-dot animate-pulse-fast delay-150"></div>
+<div class="absolute w-4 h-4 -top-1 -left-1 border border-primary rounded-full animate-ping-slow opacity-50 delay-150"></div>
+<div class="absolute top-4 left-4 bg-surface-dark/90 border border-primary/30 p-2 rounded hidden group-hover:block w-32 backdrop-blur-sm z-50">
+<div class="text-xs text-slate-400 font-mono">Tokyo</div>
+<div class="text-sm font-bold text-white">8ms <span class="text-emerald-400">●</span></div>
+</div>
+</div>
+<!-- Singapore -->
+<div class="absolute top-[52%] left-[76%] group">
+<div class="map-dot animate-pulse-fast delay-300"></div>
+<div class="absolute w-4 h-4 -top-1 -left-1 border border-primary rounded-full animate-ping-slow opacity-50 delay-300"></div>
+</div>
+<!-- Sao Paulo -->
+<div class="absolute top-[70%] left-[32%] group">
+<div class="map-dot bg-yellow-400 shadow-[0_0_10px_#facc15]"></div>
+</div>
+</div>
+<!-- Map Controls -->
+<div class="absolute bottom-8 right-8 flex flex-col gap-2">
+<button class="w-8 h-8 rounded bg-surface-dark border border-border-dark text-slate-400 hover:text-white hover:border-primary/50 flex items-center justify-center transition-all">
+<span class="material-icons-round text-lg">add</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-dark border border-border-dark text-slate-400 hover:text-white hover:border-primary/50 flex items-center justify-center transition-all">
+<span class="material-icons-round text-lg">remove</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-dark border border-border-dark text-slate-400 hover:text-white hover:border-primary/50 flex items-center justify-center transition-all mt-2">
+<span class="material-icons-round text-lg">my_location</span>
+</button>
+</div>
+</div>
+<!-- Bottom Panel: Latency Graph -->
+<div class="h-48 bg-surface-dark border-t border-border-dark p-4 relative shrink-0">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-xs uppercase font-bold text-slate-400 tracking-wider flex items-center gap-2">
+<span class="material-icons-round text-sm">show_chart</span>
+                        Network Jitter (Last 60m)
+                    </h3>
+<div class="flex gap-4 text-[10px] font-mono text-slate-500">
+<span>MIN: 14ms</span>
+<span>MAX: 42ms</span>
+<span class="text-primary">CUR: 18ms</span>
+</div>
+</div>
+<div class="relative h-28 w-full overflow-hidden">
+<svg class="w-full h-full" preserveaspectratio="none">
+<defs>
+<lineargradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#06e8f9" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#06e8f9" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid Lines -->
+<g class="chart-grid opacity-30">
+<line x1="0" x2="100%" y1="25%" y2="25%"></line>
+<line x1="0" x2="100%" y1="50%" y2="50%"></line>
+<line x1="0" x2="100%" y1="75%" y2="75%"></line>
+</g>
+<!-- Data Line -->
+<path class="chart-area" d="M0,80 Q20,70 40,75 T80,60 T120,65 T160,50 T200,55 T240,30 T280,35 T320,20 T360,25 T400,40 T440,35 T480,45 T520,40 T560,55 T600,50 T640,60 T680,55 T720,70 T760,65 T800,80 T840,75 T880,90 T920,85 T960,95 L960,100 L0,100 Z"></path>
+<path class="chart-line" d="M0,80 Q20,70 40,75 T80,60 T120,65 T160,50 T200,55 T240,30 T280,35 T320,20 T360,25 T400,40 T440,35 T480,45 T520,40 T560,55 T600,50 T640,60 T680,55 T720,70 T760,65 T800,80 T840,75 T880,90 T920,85 T960,95"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Right Sidebar: Node Health -->
+<aside class="w-80 bg-surface-dark border-l border-border-dark flex flex-col z-20 shadow-2xl shrink-0">
+<div class="p-4 border-b border-border-dark bg-surface-dark">
+<h2 class="text-sm font-bold uppercase tracking-wider text-white mb-1">Node Health</h2>
+<p class="text-[10px] text-slate-500 font-mono">Real-time RPC Endpoint Status</p>
+</div>
+<div class="flex-1 overflow-y-auto scrollbar-hide p-2 space-y-1">
+<!-- Header Row -->
+<div class="grid grid-cols-4 px-3 py-2 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+<div class="col-span-2">Location</div>
+<div class="text-right">Lat</div>
+<div class="text-right">Uptime</div>
+</div>
+<!-- Node Item: Tokyo -->
+<div class="group flex items-center justify-between p-3 rounded hover:bg-white/5 border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium group-hover:text-primary transition-colors">Tokyo</span>
+<span class="text-[10px] text-slate-500 font-mono">ap-northeast-1</span>
+</div>
+</div>
+<div class="flex flex-col items-end font-mono">
+<span class="text-sm text-emerald-400">12ms</span>
+<span class="text-[10px] text-slate-500">99.99%</span>
+</div>
+</div>
+<!-- Node Item: New York -->
+<div class="group flex items-center justify-between p-3 rounded hover:bg-white/5 border border-transparent hover:border-primary/20 transition-all cursor-pointer bg-white/[0.02]">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_#f59e0b]"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium group-hover:text-primary transition-colors">New York</span>
+<span class="text-[10px] text-slate-500 font-mono">us-east-1</span>
+</div>
+</div>
+<div class="flex flex-col items-end font-mono">
+<span class="text-sm text-yellow-400">24ms</span>
+<span class="text-[10px] text-slate-500">99.95%</span>
+</div>
+</div>
+<!-- Node Item: Frankfurt -->
+<div class="group flex items-center justify-between p-3 rounded hover:bg-white/5 border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_#f59e0b]"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium group-hover:text-primary transition-colors">Frankfurt</span>
+<span class="text-[10px] text-slate-500 font-mono">eu-central-1</span>
+</div>
+</div>
+<div class="flex flex-col items-end font-mono">
+<span class="text-sm text-yellow-400">31ms</span>
+<span class="text-[10px] text-slate-500">99.98%</span>
+</div>
+</div>
+<!-- Node Item: Singapore -->
+<div class="group flex items-center justify-between p-3 rounded hover:bg-white/5 border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium group-hover:text-primary transition-colors">Singapore</span>
+<span class="text-[10px] text-slate-500 font-mono">ap-southeast-1</span>
+</div>
+</div>
+<div class="flex flex-col items-end font-mono">
+<span class="text-sm text-emerald-400">14ms</span>
+<span class="text-[10px] text-slate-500">100.0%</span>
+</div>
+</div>
+<!-- Node Item: London -->
+<div class="group flex items-center justify-between p-3 rounded hover:bg-white/5 border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium group-hover:text-primary transition-colors">London</span>
+<span class="text-[10px] text-slate-500 font-mono">eu-west-2</span>
+</div>
+</div>
+<div class="flex flex-col items-end font-mono">
+<span class="text-sm text-emerald-400">18ms</span>
+<span class="text-[10px] text-slate-500">99.99%</span>
+</div>
+</div>
+<!-- Node Item: Sao Paulo -->
+<div class="group flex items-center justify-between p-3 rounded hover:bg-white/5 border border-transparent hover:border-primary/20 transition-all cursor-pointer opacity-70">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></div>
+<div class="flex flex-col">
+<span class="text-sm text-white font-medium group-hover:text-primary transition-colors">Sao Paulo</span>
+<span class="text-[10px] text-slate-500 font-mono">sa-east-1</span>
+</div>
+</div>
+<div class="flex flex-col items-end font-mono">
+<span class="text-sm text-red-400">142ms</span>
+<span class="text-[10px] text-slate-500">98.20%</span>
+</div>
+</div>
+</div>
+<!-- Sidebar Footer -->
+<div class="p-4 border-t border-border-dark bg-surface-dark/50 text-[10px] text-slate-500 font-mono flex justify-between">
+<span>System Status: <span class="text-emerald-400">OPERATIONAL</span></span>
+<span>v2.4.1</span>
+</div>
+</aside>
+</main>
+</body></html>

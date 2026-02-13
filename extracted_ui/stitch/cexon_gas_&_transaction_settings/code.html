@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cexon - Gas &amp; Transaction Settings</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#06e8f9",
+                        "primary-dark": "#04b0bd",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#050505", /* Deepest Black as requested */
+                        "card-dark": "#121212", /* Gunmetal Grey */
+                        "border-dark": "#333333",
+                        "surface-dark": "#1a1a1a",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "md": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(6, 232, 249, 0.5), 0 0 20px rgba(6, 232, 249, 0.3)',
+                        'neon-sm': '0 0 5px rgba(6, 232, 249, 0.4)',
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer components {
+            .input-field {
+                @apply bg-surface-dark border border-border-dark rounded text-white px-4 py-3 font-mono text-sm focus:outline-none focus:border-primary focus:shadow-neon transition-all duration-300 w-full placeholder-gray-600;
+            }
+            .section-title {
+                @apply text-gray-400 text-xs font-display uppercase tracking-widest mb-4 font-semibold;
+            }
+            .toggle-checkbox:checked {
+                @apply right-0 border-primary;
+            }
+            .toggle-checkbox:checked + .toggle-label {
+                @apply bg-primary/20;
+            }
+            
+            /* Custom Range Slider Styling */
+            input[type=range] {
+                @apply w-full h-2 bg-surface-dark rounded-lg appearance-none cursor-pointer border border-border-dark;
+            }
+            input[type=range]::-webkit-slider-thumb {
+                @apply appearance-none w-4 h-4 rounded-sm bg-primary border-none shadow-neon cursor-pointer transition-all hover:scale-125;
+            }
+        }
+
+        /* Scanlines Effect for Cyberpunk Feel */
+        .bg-scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white min-h-screen flex items-center justify-center p-4 selection:bg-primary selection:text-black relative overflow-hidden">
+<!-- Background Grid Texture -->
+<div class="absolute inset-0 z-0 opacity-10" style="background-image: radial-gradient(#333 1px, transparent 1px); background-size: 24px 24px;"></div>
+<div class="absolute inset-0 z-0 bg-scanlines pointer-events-none"></div>
+<!-- Main Container -->
+<main class="w-full max-w-2xl bg-card-dark border border-border-dark rounded-xl shadow-2xl relative z-10 flex flex-col max-h-[95vh] overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between px-6 py-5 border-b border-border-dark bg-card-dark/50 backdrop-blur-sm sticky top-0 z-20">
+<div class="flex items-center gap-3">
+<div class="w-2 h-8 bg-gradient-to-b from-primary to-transparent rounded-full"></div>
+<div>
+<h1 class="text-xl font-bold tracking-tight text-white">Gas &amp; Transaction Settings</h1>
+<p class="text-xs text-primary/60 font-mono tracking-wider">CEXON TERMINAL v4.2.0 // <span class="text-green-500">CONNECTED</span></p>
+</div>
+</div>
+<button class="text-gray-500 hover:text-white transition-colors">
+<span class="material-icons">close</span>
+</button>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar space-y-8">
+<!-- Standard Gas Controls -->
+<section>
+<div class="flex justify-between items-end mb-4">
+<h3 class="section-title !mb-0">Standard Gas Controls</h3>
+<div class="flex items-center gap-2 text-xs font-mono text-gray-500">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        Base Fee: 24 Gwei
+                    </div>
+</div>
+<div class="grid grid-cols-3 gap-4">
+<!-- Option 1: Fast -->
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="gas_speed" type="radio"/>
+<div class="bg-surface-dark border border-border-dark rounded-lg p-4 hover:border-gray-500 peer-checked:border-primary peer-checked:shadow-neon-sm peer-checked:bg-primary/5 transition-all h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-sm font-bold text-gray-300 peer-checked:text-primary">Fast</span>
+<span class="material-icons text-gray-600 peer-checked:text-primary text-sm">local_shipping</span>
+</div>
+<div class="font-mono text-lg text-white mb-1">26 <span class="text-xs text-gray-500">Gwei</span></div>
+<div class="flex justify-between items-center text-xs text-gray-500 font-mono">
+<span>~$1.02</span>
+<span>~45s</span>
+</div>
+</div>
+</label>
+<!-- Option 2: Turbo -->
+<label class="cursor-pointer group relative">
+<input checked="" class="peer sr-only" name="gas_speed" type="radio"/>
+<div class="bg-surface-dark border border-border-dark rounded-lg p-4 hover:border-gray-500 peer-checked:border-primary peer-checked:shadow-neon-sm peer-checked:bg-primary/5 transition-all h-full relative overflow-hidden">
+<!-- Shine effect on active -->
+<div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full -mr-8 -mt-8 pointer-events-none"></div>
+<div class="flex justify-between items-start mb-2">
+<span class="text-sm font-bold text-gray-300 peer-checked:text-primary">Turbo</span>
+<span class="material-icons text-gray-600 peer-checked:text-primary text-sm">rocket_launch</span>
+</div>
+<div class="font-mono text-lg text-white mb-1">32 <span class="text-xs text-gray-500">Gwei</span></div>
+<div class="flex justify-between items-center text-xs text-gray-500 font-mono">
+<span>~$1.24</span>
+<span class="text-primary">~12s</span>
+</div>
+</div>
+</label>
+<!-- Option 3: Instant -->
+<label class="cursor-pointer group relative">
+<input class="peer sr-only" name="gas_speed" type="radio"/>
+<div class="bg-surface-dark border border-border-dark rounded-lg p-4 hover:border-gray-500 peer-checked:border-primary peer-checked:shadow-neon-sm peer-checked:bg-primary/5 transition-all h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-sm font-bold text-gray-300 peer-checked:text-primary">Instant</span>
+<span class="material-icons text-gray-600 peer-checked:text-primary text-sm">bolt</span>
+</div>
+<div class="font-mono text-lg text-white mb-1">45 <span class="text-xs text-gray-500">Gwei</span></div>
+<div class="flex justify-between items-center text-xs text-gray-500 font-mono">
+<span>~$1.80</span>
+<span class="text-primary font-bold">~3s</span>
+</div>
+</div>
+</label>
+</div>
+</section>
+<!-- Advanced Quant Controls -->
+<section>
+<h3 class="section-title">Advanced Quant Controls</h3>
+<div class="bg-card-dark border border-border-dark rounded-lg p-5 space-y-6">
+<!-- Fees -->
+<div class="grid grid-cols-2 gap-6">
+<div class="relative group">
+<label class="block text-xs text-gray-400 mb-1.5 font-medium">Max Base Fee <span class="text-gray-600">(Gwei)</span></label>
+<input class="input-field text-right" placeholder="0.0" type="number" value="32"/>
+<span class="absolute right-12 top-[34px] text-xs font-mono text-gray-600 pointer-events-none">GWEI</span>
+</div>
+<div class="relative group">
+<label class="block text-xs text-gray-400 mb-1.5 font-medium">Priority Fee <span class="text-gray-600">(Gwei)</span></label>
+<input class="input-field text-right border-primary/50 text-primary" placeholder="0.0" type="number" value="2.5"/>
+<span class="absolute right-12 top-[34px] text-xs font-mono text-gray-600 pointer-events-none">GWEI</span>
+</div>
+</div>
+<!-- MEV Protection Toggle -->
+<div class="flex items-center justify-between pt-2">
+<div class="pr-4">
+<div class="text-sm font-medium text-white mb-1 flex items-center gap-2">
+                                MEV Protection
+                                <span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[10px] font-mono tracking-wide">PRIVATE RPC</span>
+</div>
+<p class="text-xs text-gray-500 leading-relaxed">Routes transactions through a private mempool to prevent sandwich attacks.</p>
+</div>
+<label class="flex items-center cursor-pointer relative" for="mev-toggle">
+<input checked="" class="sr-only peer" id="mev-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-dark border border-border-dark rounded-full peer peer-focus:ring-2 peer-focus:ring-primary/20 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:after:bg-primary"></div>
+</label>
+</div>
+<!-- Front-Running Protection Slider -->
+<div class="pt-2">
+<div class="flex justify-between items-center mb-4">
+<label class="text-sm font-medium text-white">Front-Running Protection</label>
+<span class="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded">LEVEL: HIGH</span>
+</div>
+<div class="relative w-full h-10 flex items-center">
+<!-- Ticks -->
+<div class="absolute w-full flex justify-between px-1 -top-1 pointer-events-none">
+<div class="h-2 w-px bg-gray-700"></div>
+<div class="h-2 w-px bg-gray-700"></div>
+<div class="h-2 w-px bg-gray-700"></div>
+<div class="h-2 w-px bg-gray-700"></div>
+</div>
+<input class="w-full" max="4" min="1" step="1" type="range" value="3"/>
+</div>
+<div class="flex justify-between text-[10px] uppercase tracking-widest text-gray-500 font-mono mt-1">
+<span>Standard</span>
+<span>Elevated</span>
+<span class="text-primary">High</span>
+<span class="text-red-500">Nuclear</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Lane Management -->
+<section>
+<div class="flex justify-between items-center mb-4">
+<h3 class="section-title !mb-0">Lane Management</h3>
+<div class="flex items-center space-x-2">
+<span class="text-[10px] uppercase text-gray-500 font-mono">Sequencing</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-9 h-5 bg-surface-dark peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-500 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary/20 peer-checked:border border-primary/50 peer-checked:after:bg-primary"></div>
+</label>
+</div>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-lg p-5 flex items-center justify-between gap-6">
+<!-- Visualizer -->
+<div class="flex-1">
+<div class="flex gap-2 h-16 items-end justify-center px-4 py-2 bg-black/40 rounded border border-border-dark relative overflow-hidden">
+<!-- Lane 1 -->
+<div class="w-3 bg-gradient-to-t from-primary/10 to-transparent border-b-2 border-primary/30 h-[40%] rounded-t-sm relative group">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] text-gray-600 font-mono opacity-0 group-hover:opacity-100 transition-opacity">1</div>
+</div>
+<!-- Lane 2 (Active) -->
+<div class="w-3 bg-gradient-to-t from-primary to-transparent shadow-[0_0_10px_rgba(6,232,249,0.5)] border-b-2 border-white h-[85%] rounded-t-sm relative animate-pulse">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] text-primary font-mono">2</div>
+</div>
+<!-- Lane 3 -->
+<div class="w-3 bg-gradient-to-t from-primary/20 to-transparent border-b-2 border-primary/50 h-[60%] rounded-t-sm relative group">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] text-gray-600 font-mono opacity-0 group-hover:opacity-100 transition-opacity">3</div>
+</div>
+<!-- Lane 4 -->
+<div class="w-3 bg-gradient-to-t from-primary/5 to-transparent border-b-2 border-primary/20 h-[30%] rounded-t-sm relative group">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] text-gray-600 font-mono opacity-0 group-hover:opacity-100 transition-opacity">4</div>
+</div>
+<!-- Overlay Grid for visualizer -->
+<div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNCIgaGVpZ2h0PSI0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xIDFoMXYxSDF6IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==')] opacity-20 pointer-events-none"></div>
+</div>
+</div>
+<!-- Lane Stickiness Toggle -->
+<div class="w-px h-16 bg-border-dark"></div>
+<div class="w-1/2">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm text-white font-medium">Lane Stickiness</span>
+<div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_5px_#06e8f9]"></div>
+</div>
+<p class="text-xs text-gray-500 mb-3">Keeps related trades in the same nonce lane to prevent sequence breaks.</p>
+<button class="w-full py-1.5 px-3 rounded bg-primary/10 border border-primary/30 text-primary text-xs font-mono uppercase tracking-wider hover:bg-primary/20 transition-colors">
+                            Enabled
+                        </button>
+</div>
+</div>
+</section>
+<!-- Transaction Lifecycle -->
+<section>
+<h3 class="section-title">Transaction Lifecycle</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-dark border border-border-dark rounded-lg p-4">
+<div class="flex justify-between items-center mb-2">
+<label class="text-xs text-gray-400 font-medium">Auto-Cancel Timeout</label>
+<span class="material-icons text-gray-600 text-[16px]">timer_off</span>
+</div>
+<div class="flex items-center gap-2">
+<input class="bg-transparent border-b border-gray-700 text-white font-mono text-lg w-full focus:outline-none focus:border-primary pb-1 placeholder-gray-700 text-right" type="text" value="3500"/>
+<span class="text-xs font-mono text-gray-600">ms</span>
+</div>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-lg p-4">
+<div class="flex justify-between items-center mb-2">
+<label class="text-xs text-gray-400 font-medium">Max Slippage</label>
+<span class="material-icons text-gray-600 text-[16px]">trending_down</span>
+</div>
+<div class="flex items-center gap-2">
+<input class="bg-transparent border-b border-gray-700 text-white font-mono text-lg w-full focus:outline-none focus:border-primary pb-1 placeholder-gray-700 text-right" type="text" value="0.5"/>
+<span class="text-xs font-mono text-gray-600">%</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer -->
+<footer class="p-6 border-t border-border-dark bg-card-dark z-20">
+<div class="flex flex-col gap-4">
+<button class="w-full bg-gradient-to-r from-primary-dark to-primary text-black font-bold py-3.5 rounded-lg shadow-neon hover:opacity-90 transition-opacity uppercase tracking-wider text-sm flex items-center justify-center gap-2 group">
+<span class="material-icons text-black text-sm group-hover:rotate-180 transition-transform duration-500">settings_suggest</span>
+                    Save Configuration
+                </button>
+<button class="text-center text-xs text-gray-500 font-mono hover:text-primary transition-colors flex items-center justify-center gap-1">
+<span class="material-icons text-[12px]">restart_alt</span>
+                    Restore Quant Defaults
+                </button>
+</div>
+</footer>
+</main>
+<!-- Map/Location Image Data Attribute Requirement (Though irrelevant for this context, fulfilling the requirement if an image was used) -->
+<!-- Note: No IMG tags used, only CSS gradients and Icons as per strict UI design -->
+</body></html>
