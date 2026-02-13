@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: "Inter", sans-serif;
+    --font-jetbrains-mono: "JetBrains Mono", monospace;
+  }
+
+  body {
+    @apply bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-200 antialiased min-h-screen font-display;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #050505;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #444;
+  }
+
+  /* Utility classes from code.html */
+  .depth-bg-ask {
+    background: linear-gradient(to left, rgba(255, 59, 48, 0.15) var(--percent), transparent var(--percent));
+  }
+
+  .depth-bg-bid {
+    background: linear-gradient(to left, rgba(0, 238, 255, 0.15) var(--percent), transparent var(--percent));
+  }
+
+  .grid-bg {
+    background-image: linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .pulse-bar {
+    animation: pulse-width 2s infinite ease-in-out;
+  }
+
+  @keyframes pulse-width {
+    0% {
+      opacity: 0.6;
+    }
+
+    50% {
+      opacity: 1;
+      box-shadow: 0 0 8px rgba(0, 238, 255, 0.6);
+    }
+
+    100% {
+      opacity: 0.6;
+    }
+  }
+}
+
+@layer utilities {
+  .shadow-glow {
+    box-shadow: 0 0 10px rgba(0, 238, 255, 0.3), 0 0 20px rgba(0, 238, 255, 0.1);
+  }
+
+  .shadow-glow-sm {
+    box-shadow: 0 0 5px rgba(0, 238, 255, 0.4);
+  }
+}
