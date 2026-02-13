@@ -9,6 +9,11 @@ import { ArrowUpDown, Filter } from 'lucide-react';
 export const OrderBook = () => {
     const { bids, asks, price } = useMarketStore();
     const { tradeHistory } = useGlobalStore();
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     return (
         <aside className="col-span-12 lg:col-span-3 bg-surface-dark flex flex-col h-full border-l border-surface-border overflow-hidden">
@@ -82,7 +87,7 @@ export const OrderBook = () => {
                             </div>
                             <div className="text-right text-slate-400">{trade.amount.toFixed(2)}</div>
                             <div className="text-right text-slate-600">
-                                {new Date(trade.timestamp).toLocaleTimeString([], { hour12: false })}
+                                {isMounted ? new Date(trade.timestamp).toLocaleTimeString([], { hour12: false }) : "--:--:--"}
                             </div>
                         </div>
                     ))}
