@@ -5,8 +5,11 @@ import { Shield, Key, Fingerprint, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
+import { usePrivy } from '@privy-io/react-auth';
+
 export const SessionStatus = () => {
-    const [isActive, setIsActive] = React.useState(true);
+    const { authenticated } = usePrivy();
+    const isActive = authenticated;
 
     return (
         <div className="absolute top-4 right-4 z-20 flex items-center gap-2">

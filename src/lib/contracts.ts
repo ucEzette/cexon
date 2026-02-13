@@ -1,4 +1,5 @@
 export const LANE_MANAGER_ADDRESS = "0x55129FC022f7F955132f722B70Dc90e97269211c" as const;
+export const USDC_ADDRESS = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174" as const; // Placeholder USDC address
 
 export const LANE_MANAGER_ABI = [
     {

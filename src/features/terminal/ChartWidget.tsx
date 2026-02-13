@@ -86,8 +86,16 @@ export const ChartWidget = () => {
             const result = initChart();
             if (result) {
                 (window as any)._cleanup_chart = () => {
-                    window.removeEventListener('resize', result.handleResize);
-                    result.chart.remove();
+                    if (result && result.handleResize) {
+                        window.removeEventListener('resize', result.handleResize);
+                    }
+                    if (result && result.chart) {
+                        try {
+                            result.chart.remove();
+                        } catch (e) {
+                            console.warn('Failed to remove chart:', e);
+                        }
+                    }
                 };
             }
         }, 100);

@@ -7,8 +7,10 @@ import { useGlobalStore, Order } from '@/store/useGlobalStore';
 import { cn } from '@/lib/utils';
 import { Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useWallets } from '@privy-io/react-auth';
 
 export const OrderForm = () => {
+    const { wallets } = useWallets();
     const { processTrade, lanes } = useLaneManager();
     const { price } = useMarketStore();
     const { userBalance, addOrder, fillOrder, isKillSwitchActive } = useGlobalStore();
@@ -27,34 +29,46 @@ export const OrderForm = () => {
 
     const handleTradeCap = async () => {
         if (isKillSwitchActive) return;
+
+        const wallet = wallets[0];
+        if (!wallet) {
+            alert("Please connect your wallet first.");
+            return;
+        }
+
+        const orderId = Math.random().toString(36).substring(7);
         const tradeParams = {
+            id: orderId,
             side,
             amount: parseFloat(amount),
             price: parseFloat(orderPrice),
-            total,
-            pair: 'ETH / USDC',
         };
 
-        const orderId = Math.random().toString(36).substring(7);
         const newOrder: Order = {
             id: orderId,
-            pair: tradeParams.pair,
+            pair: 'ETH / USDC',
             side: tradeParams.side,
             price: tradeParams.price,
             amount: tradeParams.amount,
-            total: tradeParams.total,
+            total,
             status: 'open',
             timestamp: Date.now(),
         };
 
         addOrder(newOrder);
 
-        const laneId = await processTrade(tradeParams);
+        try {
+            const provider = await wallet.getEthereumProvider();
+            const laneId = await processTrade(tradeParams, provider);
 
-        if (laneId) {
-            fillOrder(orderId, laneId);
-        } else {
-            alert("Execution failed: All lanes are currently busy. Parallel limit reached.");
+            if (laneId) {
+                fillOrder(orderId, laneId);
+            } else {
+                alert("Execution failed: All lanes are currently busy. Parallel limit reached.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Execution failed: User rejected or network error.");
         }
     };
 
