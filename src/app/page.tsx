@@ -16,6 +16,7 @@ import { PortfolioView } from '@/features/portfolio/PortfolioView';
 import { AnalyticsView } from '@/features/analytics/AnalyticsView';
 import { StakeView } from '@/features/stake/StakeView';
 import { SettingsView } from '@/features/profile/SettingsView';
+import { DocsView } from '@/features/docs/DocsView';
 
 export default function Home() {
     const { price } = useMarketStore();
@@ -32,6 +33,8 @@ export default function Home() {
                 return <StakeView />;
             case 'Settings':
                 return <SettingsView />;
+            case 'Docs':
+                return <DocsView />;
             case 'Trading':
             default:
                 return (
