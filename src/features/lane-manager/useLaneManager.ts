@@ -18,8 +18,8 @@ export interface Lane {
 interface LaneState {
     lanes: Lane[];
     isSyncing: boolean;
-    syncNonces: () => Promise<void>;
-    processTrade: (tradeParams: { id: string; side: string; price: number; amount: number }) => Promise<number | null>;
+    syncNonces: (provider?: any) => Promise<void>;
+    processTrade: (tradeParams: { id: string; side: string; price: number; amount: number }, provider?: any) => Promise<number | null>;
     resetLane: (id: number) => void;
 }
 
@@ -32,8 +32,8 @@ export const useLaneManager = create<LaneState>((set, get) => ({
     ],
     isSyncing: false,
 
-    syncNonces: async () => {
-        const { getLaneNoncesOnChain } = useContractInteractions();
+    syncNonces: async (provider) => {
+        const { getLaneNoncesOnChain } = useContractInteractions(provider);
         set({ isSyncing: true });
         try {
             const nonces = await getLaneNoncesOnChain();
@@ -48,9 +48,9 @@ export const useLaneManager = create<LaneState>((set, get) => ({
         }
     },
 
-    processTrade: async (tradeParams) => {
+    processTrade: async (tradeParams, provider) => {
         const { lanes } = get();
-        const { executeTradeOnChain } = useContractInteractions();
+        const { executeTradeOnChain } = useContractInteractions(provider);
         const { addToast } = useToastStore.getState();
 
         // Smart Routing: Find the first idle lane

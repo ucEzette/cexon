@@ -26,7 +26,7 @@ export const StakeView = () => {
                         </div>
                         <div>
                             <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Staked Balance</div>
-                            <div className="text-3xl font-bold text-white font-mono">1,240.00 <span className="text-primary">CXN</span></div>
+                            <div className="text-3xl font-bold text-white font-mono">1,240.00 <span className="text-primary">USDC</span></div>
                         </div>
                     </div>
 
@@ -35,19 +35,19 @@ export const StakeView = () => {
                             <span className="text-slate-500 uppercase font-bold tracking-widest flex items-center gap-2">
                                 <Timer className="w-3 h-3" /> Lock Duration
                             </span>
-                            <span className="text-white font-mono font-bold">143 Days Remaining</span>
+                            <span className="text-white font-mono font-bold">Ended</span>
                         </div>
                         <div className="h-1.5 w-full bg-black rounded-full overflow-hidden">
                             <motion.div
                                 initial={{ width: 0 }}
-                                animate={{ width: '65%' }}
+                                animate={{ width: '100%' }}
                                 className="h-full bg-primary shadow-glow-sm"
                             />
                         </div>
                     </div>
 
                     <button className="w-full py-4 bg-primary text-black font-bold font-mono text-xs uppercase tracking-[0.2em] rounded-lg shadow-glow hover:scale-[1.02] transition-transform">
-                        Unstake CXN
+                        Withdraw USDC
                     </button>
                     <p className="text-[9px] text-slate-600 text-center font-mono italic">Early withdrawal incurs a 15% penalty fee dedicated to Fee Sponsorship pool.</p>
                 </div>
@@ -64,7 +64,7 @@ export const StakeView = () => {
                                 <div className="text-xl font-bold text-green-500 font-mono">18.4%</div>
                             </div>
                             <div className="p-4 rounded-xl bg-black/40">
-                                <div className="text-[9px] text-slate-500 font-bold uppercase mb-1">Accrued (TEMPO)</div>
+                                <div className="text-[9px] text-slate-500 font-bold uppercase mb-1">Accrued (USDC)</div>
                                 <div className="text-xl font-bold text-white font-mono">42.50</div>
                             </div>
                         </div>
@@ -80,7 +80,7 @@ export const StakeView = () => {
                         </div>
                         <div className="space-y-3">
                             <div className="flex justify-between text-[11px] font-mono">
-                                <span className="text-slate-500">Total CXN Locked</span>
+                                <span className="text-slate-500">Total USDC Locked</span>
                                 <span className="text-slate-300">14.2M</span>
                             </div>
                             <div className="flex justify-between text-[11px] font-mono">

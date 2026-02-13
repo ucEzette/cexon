@@ -82,7 +82,7 @@ export const AnalyticsView = () => {
                                 key={i}
                                 className="p-3 rounded bg-black/40 border-l border-primary/50 text-[10px] text-slate-400 leading-relaxed font-mono"
                             >
-                                <span className="text-primary mr-2">>>></span> {insight}
+                                <span className="text-primary mr-2">{">>>"}</span> {insight}
                             </motion.div>
                         ))}
                     </div>
