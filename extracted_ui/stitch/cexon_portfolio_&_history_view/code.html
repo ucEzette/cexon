@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cexon Portfolio &amp; History View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#00eeff",
+              "background-light": "#f5f8f8",
+              "background-dark": "#050505", /* User requested Deep Black */
+              "surface-dark": "#121212",    /* User requested Gunmetal Grey */
+              "border-dark": "#333333",
+              "profit": "#00ff9d",
+              "loss": "#ff3b3b",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"],
+              "mono": ["JetBrains Mono", "monospace"],
+            },
+            borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+            boxShadow: {
+                "glow": "0 0 10px rgba(0, 238, 255, 0.3)",
+                "glow-text": "0 0 5px rgba(0, 238, 255, 0.5)",
+                "glow-profit": "0 0 8px rgba(0, 255, 157, 0.4)",
+                "glow-loss": "0 0 8px rgba(255, 59, 59, 0.4)",
+            }
+          },
+        },
+      }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            /* Custom Table Styles for Density */
+            .dense-table th {
+                @apply py-3 px-4 text-xs font-medium text-gray-400 uppercase tracking-wider text-left border-b border-border-dark font-display;
+            }
+            .dense-table td {
+                @apply py-3 px-4 text-sm text-gray-200 border-b border-border-dark/50 font-mono whitespace-nowrap;
+            }
+            .dense-table tr:hover {
+                @apply bg-primary/5;
+            }
+            .dense-table tr:last-child td {
+                @apply border-b-0;
+            }
+            /* Neon Text Utility */
+            .text-neon {
+                text-shadow: 0 0 8px rgba(0, 238, 255, 0.5);
+            }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-gray-900 dark:text-gray-100 font-display antialiased min-h-screen flex flex-col">
+<!-- Navbar -->
+<header class="h-16 border-b border-border-dark bg-surface-dark/80 backdrop-blur-md sticky top-0 z-50 px-6 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-primary/20 flex items-center justify-center border border-primary/50 shadow-glow">
+<span class="material-icons text-primary text-xl">token</span>
+</div>
+<span class="text-xl font-bold tracking-tight text-white font-display">CEXON <span class="text-primary text-xs font-normal align-top ml-1">TERMINAL v2.4</span></span>
+</div>
+<nav class="hidden md:flex items-center ml-8 gap-1">
+<a class="px-3 py-2 text-sm text-gray-400 hover:text-primary transition-colors" href="#">Markets</a>
+<a class="px-3 py-2 text-sm text-gray-400 hover:text-primary transition-colors" href="#">Trade</a>
+<a class="px-3 py-2 text-sm text-primary bg-primary/10 rounded border border-primary/30 shadow-glow" href="#">Portfolio</a>
+<a class="px-3 py-2 text-sm text-gray-400 hover:text-primary transition-colors" href="#">Analysis</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1 rounded bg-black/40 border border-border-dark">
+<div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+<span class="text-xs font-mono text-gray-400">SYS: ONLINE</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-gray-800 border border-gray-600 overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="User avatar placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBDO4BXuPMBBIS50Pz4ypiisZa2uEKIdAxDYr3K7VGe7y0cPvSCBiGQH7yDFW6s9MQMIhJR53RdOPQPAd1NfSUMo4A7YSj2upCEAu51XxHSC50q5KJzfKAig6GNaCq1Hu3e8qHI_IrsDmf_9uBfcA5Hnjw6YetPYaeU9S5mKf3sIvbB07xBtL6jHq796jifIFgm0Vy-0VHimP9RTjfEzkXqCVaDniWbu7PuxbEdommCLMVVNkHBbPqskn6VGHHOrOqIFGHKVkVycQ"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 p-6 max-w-[1920px] mx-auto w-full grid grid-cols-1 gap-6">
+<!-- Top Section: Metrics -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Total Equity -->
+<div class="bg-surface-dark rounded-lg border border-border-dark p-5 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-icons text-6xl text-primary">account_balance_wallet</span>
+</div>
+<h3 class="text-sm font-medium text-gray-400 font-display uppercase tracking-wider mb-1">Total Equity</h3>
+<div class="flex items-baseline gap-2 mb-2">
+<span class="text-3xl font-bold text-white font-mono tracking-tight">$142,059.32</span>
+<span class="text-xs font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">USD</span>
+</div>
+<!-- Sparkline approximation with CSS gradients/divs -->
+<div class="h-10 w-full flex items-end gap-1 mt-2 opacity-80">
+<div class="w-1/12 bg-primary/20 h-[40%] rounded-sm"></div>
+<div class="w-1/12 bg-primary/30 h-[60%] rounded-sm"></div>
+<div class="w-1/12 bg-primary/20 h-[50%] rounded-sm"></div>
+<div class="w-1/12 bg-primary/40 h-[70%] rounded-sm"></div>
+<div class="w-1/12 bg-primary/30 h-[55%] rounded-sm"></div>
+<div class="w-1/12 bg-primary/50 h-[80%] rounded-sm"></div>
+<div class="w-1/12 bg-primary/40 h-[65%] rounded-sm"></div>
+<div class="w-1/12 bg-primary/60 h-[85%] rounded-sm"></div>
+<div class="w-1/12 bg-primary/50 h-[75%] rounded-sm"></div>
+<div class="w-1/12 bg-primary/80 h-[90%] rounded-sm shadow-glow"></div>
+<div class="w-1/12 bg-primary h-[100%] rounded-sm shadow-glow"></div>
+</div>
+</div>
+<!-- 24h PnL -->
+<div class="bg-surface-dark rounded-lg border border-border-dark p-5 relative overflow-hidden">
+<h3 class="text-sm font-medium text-gray-400 font-display uppercase tracking-wider mb-1">24h PnL</h3>
+<div class="flex flex-col mb-2">
+<span class="text-3xl font-bold text-profit font-mono tracking-tight shadow-glow-profit">+$4,230.50</span>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-icons text-profit text-sm">trending_up</span>
+<span class="text-sm font-mono text-profit">+3.12%</span>
+</div>
+</div>
+<div class="w-full bg-gray-800 h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-profit h-full w-[65%] shadow-[0_0_8px_rgba(0,255,157,0.5)]"></div>
+</div>
+<p class="text-xs text-gray-500 mt-2 font-mono">Daily target: $5,000.00</p>
+</div>
+<!-- Available Margin -->
+<div class="bg-surface-dark rounded-lg border border-border-dark p-5 relative overflow-hidden">
+<h3 class="text-sm font-medium text-gray-400 font-display uppercase tracking-wider mb-1">Margin Health</h3>
+<div class="flex justify-between items-end mb-2">
+<div>
+<span class="text-3xl font-bold text-white font-mono tracking-tight">68.4%</span>
+<span class="text-xs text-gray-400 block mt-1 font-mono">Used Margin</span>
+</div>
+<div class="text-right">
+<span class="text-lg font-bold text-primary font-mono">$44,866.74</span>
+<span class="text-xs text-gray-400 block mt-1 font-mono">Available</span>
+</div>
+</div>
+<!-- Custom Progress Bar -->
+<div class="relative w-full h-3 bg-gray-800 rounded-full mt-3 overflow-hidden border border-gray-700">
+<div class="absolute top-0 left-0 h-full bg-gradient-to-r from-primary/40 to-primary w-[68.4%] rounded-full shadow-glow"></div>
+<!-- Warning Threshold Marker -->
+<div class="absolute top-0 right-[20%] w-0.5 h-full bg-red-500/50 z-10"></div>
+</div>
+</div>
+</section>
+<!-- Middle Section: Active Positions -->
+<section class="bg-surface-dark rounded-lg border border-border-dark flex flex-col h-[400px]">
+<div class="px-6 py-4 border-b border-border-dark flex justify-between items-center">
+<h2 class="text-lg font-semibold text-white tracking-wide font-display flex items-center gap-2">
+<span class="w-1.5 h-4 bg-primary rounded-sm shadow-glow"></span>
+                    Active Positions
+                </h2>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 text-xs font-mono text-gray-300 hover:text-white border border-border-dark rounded hover:bg-white/5 transition-colors">Hide Other Pairs</button>
+<button class="px-3 py-1.5 text-xs font-mono text-primary bg-primary/10 border border-primary/30 rounded hover:bg-primary/20 transition-colors shadow-glow-text">Close All Positions</button>
+</div>
+</div>
+<div class="flex-1 overflow-auto scrollbar-hide">
+<table class="w-full dense-table">
+<thead class="bg-black/20 sticky top-0 backdrop-blur-sm z-10">
+<tr>
+<th>Pair</th>
+<th>Side</th>
+<th>Size (Native)</th>
+<th>Entry Price</th>
+<th>Mark Price</th>
+<th>Liq. Price</th>
+<th>Margin</th>
+<th>Unrealized PnL</th>
+<th class="text-right">Action</th>
+</tr>
+</thead>
+<tbody>
+<!-- Row 1 -->
+<tr class="group">
+<td>
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+<span class="material-icons text-indigo-400 text-xs">diamond</span>
+</div>
+<span class="font-bold text-white">ETH-PERP</span>
+<span class="text-xs text-gray-500 bg-gray-800 px-1 rounded">20x</span>
+</div>
+</td>
+<td><span class="text-profit font-bold">LONG</span></td>
+<td>10.50 ETH</td>
+<td>$1,850.00</td>
+<td>$1,855.20</td>
+<td class="text-loss">$1,760.50</td>
+<td>$971.25</td>
+<td>
+<span class="text-profit font-bold shadow-glow-profit">+$54.60</span>
+<span class="text-xs text-gray-500 ml-1">(+5.6%)</span>
+</td>
+<td class="text-right">
+<button class="text-xs border border-border-dark hover:border-red-500 hover:text-red-500 text-gray-400 px-2 py-1 rounded transition-colors uppercase font-mono">Close</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr>
+<td>
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center border border-orange-500/30">
+<span class="material-icons text-orange-400 text-xs">currency_bitcoin</span>
+</div>
+<span class="font-bold text-white">BTC-PERP</span>
+<span class="text-xs text-gray-500 bg-gray-800 px-1 rounded">50x</span>
+</div>
+</td>
+<td><span class="text-loss font-bold">SHORT</span></td>
+<td>0.45 BTC</td>
+<td>$29,400.00</td>
+<td>$29,350.00</td>
+<td class="text-loss">$29,980.00</td>
+<td>$264.15</td>
+<td>
+<span class="text-profit font-bold shadow-glow-profit">+$22.50</span>
+<span class="text-xs text-gray-500 ml-1">(+8.5%)</span>
+</td>
+<td class="text-right">
+<button class="text-xs border border-border-dark hover:border-red-500 hover:text-red-500 text-gray-400 px-2 py-1 rounded transition-colors uppercase font-mono">Close</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr>
+<td>
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+<span class="material-icons text-blue-400 text-xs">token</span>
+</div>
+<span class="font-bold text-white">SOL-PERP</span>
+<span class="text-xs text-gray-500 bg-gray-800 px-1 rounded">10x</span>
+</div>
+</td>
+<td><span class="text-profit font-bold">LONG</span></td>
+<td>450.00 SOL</td>
+<td>$22.45</td>
+<td>$22.10</td>
+<td class="text-loss">$19.80</td>
+<td>$1,010.25</td>
+<td>
+<span class="text-loss font-bold shadow-glow-loss">-$157.50</span>
+<span class="text-xs text-gray-500 ml-1">(-15.6%)</span>
+</td>
+<td class="text-right">
+<button class="text-xs border border-border-dark hover:border-red-500 hover:text-red-500 text-gray-400 px-2 py-1 rounded transition-colors uppercase font-mono">Close</button>
+</td>
+</tr>
+<!-- Empty rows fill for aesthetic -->
+<tr>
+<td class="h-10 text-center text-gray-600 text-xs italic font-mono border-none" colspan="9">-- End of Active Positions --</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Bottom Section: Tabbed Interface -->
+<section class="flex flex-col gap-4">
+<!-- Tabs Navigation -->
+<div class="flex items-center border-b border-border-dark">
+<button class="px-6 py-3 text-sm font-medium text-primary border-b-2 border-primary bg-primary/5 transition-colors font-display">
+                    Trade History
+                </button>
+<button class="px-6 py-3 text-sm font-medium text-gray-400 hover:text-gray-200 border-b-2 border-transparent transition-colors font-display">
+                    Open Orders <span class="ml-2 px-1.5 py-0.5 bg-gray-800 rounded text-xs text-gray-300 font-mono">3</span>
+</button>
+<button class="px-6 py-3 text-sm font-medium text-gray-400 hover:text-gray-200 border-b-2 border-transparent transition-colors font-display">
+                    Funding &amp; Fees
+                </button>
+</div>
+<!-- Content Panel (Trade History) -->
+<div class="bg-surface-dark rounded-lg border border-border-dark overflow-hidden min-h-[300px]">
+<table class="w-full dense-table">
+<thead class="bg-black/20">
+<tr>
+<th>Timestamp</th>
+<th>Pair</th>
+<th>Side</th>
+<th>Price</th>
+<th>Filled Amount</th>
+<th>Value</th>
+<th>Lane ID</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="text-gray-500">2023-10-24 14:32:05</td>
+<td class="font-bold text-white">ETH-PERP</td>
+<td class="text-profit">BUY</td>
+<td>$1,850.00</td>
+<td>2.50 ETH</td>
+<td>$4,625.00</td>
+<td>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-primary/10 text-primary border border-primary/20 shadow-glow-text">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mr-1.5 animate-pulse"></span>
+                                    L-09
+                                </span>
+</td>
+<td><span class="text-gray-400 text-xs uppercase">Filled</span></td>
+</tr>
+<tr>
+<td class="text-gray-500">2023-10-24 14:30:12</td>
+<td class="font-bold text-white">ETH-PERP</td>
+<td class="text-profit">BUY</td>
+<td>$1,848.50</td>
+<td>8.00 ETH</td>
+<td>$14,788.00</td>
+<td>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-primary/10 text-primary border border-primary/20 shadow-glow-text">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mr-1.5 animate-pulse"></span>
+                                    L-04
+                                </span>
+</td>
+<td><span class="text-gray-400 text-xs uppercase">Filled</span></td>
+</tr>
+<tr>
+<td class="text-gray-500">2023-10-24 12:15:44</td>
+<td class="font-bold text-white">BTC-PERP</td>
+<td class="text-loss">SELL</td>
+<td>$29,400.00</td>
+<td>0.45 BTC</td>
+<td>$13,230.00</td>
+<td>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-primary/10 text-primary border border-primary/20 shadow-glow-text">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mr-1.5 animate-pulse"></span>
+                                    L-11
+                                </span>
+</td>
+<td><span class="text-gray-400 text-xs uppercase">Filled</span></td>
+</tr>
+<tr>
+<td class="text-gray-500">2023-10-24 09:05:21</td>
+<td class="font-bold text-white">ARB-PERP</td>
+<td class="text-loss">SELL</td>
+<td>$0.92</td>
+<td>5,000 ARB</td>
+<td>$4,600.00</td>
+<td>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-primary/10 text-primary border border-primary/20 shadow-glow-text">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mr-1.5 animate-pulse"></span>
+                                    L-02
+                                </span>
+</td>
+<td><span class="text-gray-400 text-xs uppercase">Filled</span></td>
+</tr>
+<tr>
+<td class="text-gray-500">2023-10-24 08:45:10</td>
+<td class="font-bold text-white">SOL-PERP</td>
+<td class="text-profit">BUY</td>
+<td>$22.45</td>
+<td>450 SOL</td>
+<td>$10,102.50</td>
+<td>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-primary/10 text-primary border border-primary/20 shadow-glow-text">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mr-1.5 animate-pulse"></span>
+                                    L-07
+                                </span>
+</td>
+<td><span class="text-gray-400 text-xs uppercase">Filled</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination / Table Footer -->
+<div class="flex justify-between items-center px-2">
+<span class="text-xs text-gray-500 font-mono">Showing 1-5 of 128 trades</span>
+<div class="flex gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-border-dark text-gray-400 hover:text-white hover:border-gray-500 bg-surface-dark transition-colors">
+<span class="material-icons text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-primary text-primary bg-primary/10 shadow-glow-text transition-colors text-sm font-mono">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-border-dark text-gray-400 hover:text-white hover:border-gray-500 bg-surface-dark transition-colors text-sm font-mono">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-border-dark text-gray-400 hover:text-white hover:border-gray-500 bg-surface-dark transition-colors text-sm font-mono">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-border-dark text-gray-400 hover:text-white hover:border-gray-500 bg-surface-dark transition-colors">
+<span class="material-icons text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Status Bar / Footer -->
+<footer class="h-8 border-t border-border-dark bg-surface-dark px-6 flex items-center justify-between text-xs font-mono text-gray-500">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> WebSocket: Connected (14ms)</span>
+<span>API: v2.4.1</span>
+</div>
+<div class="flex items-center gap-4">
+<span>Gas: 15 gwei</span>
+<span>Block: 18459201</span>
+</div>
+</footer>
+</body></html>
