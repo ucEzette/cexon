@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cexon High-Frequency Trading Terminal</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#00eeff",
+              "background-light": "#f5f8f8",
+              "background-dark": "#050505", 
+              "surface-dark": "#121212", 
+              "surface-border": "#333333",
+              "ask-red": "#ff3b30",
+              "bid-green": "#00eeff",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"],
+              "mono": ["JetBrains Mono", "monospace"],
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            boxShadow: {
+                "glow": "0 0 10px rgba(0, 238, 255, 0.3), 0 0 20px rgba(0, 238, 255, 0.1)",
+                "glow-sm": "0 0 5px rgba(0, 238, 255, 0.4)",
+            }
+          },
+        },
+      }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444; 
+        }.depth-bg-ask {
+            background: linear-gradient(to left, rgba(255, 59, 48, 0.15) var(--percent), transparent var(--percent));
+        }
+        .depth-bg-bid {
+            background: linear-gradient(to left, rgba(0, 238, 255, 0.15) var(--percent), transparent var(--percent));
+        }
+        .grid-bg {
+            background-image: linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .pulse-bar {
+            animation: pulse-width 2s infinite ease-in-out;
+        }
+        @keyframes pulse-width {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; box-shadow: 0 0 8px rgba(0,238,255,0.6); }
+            100% { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-200 font-display min-h-screen flex flex-col overflow-hidden relative">
+<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none opacity-0">
+<div class="w-full max-w-md bg-surface-dark/90 backdrop-blur-xl border border-surface-border rounded-xl shadow-2xl p-6 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-lg font-bold text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">security</span>
+        Security &amp; Devices
+      </h2>
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-icons">close</span>
+</button>
+</div>
+<div class="mb-6">
+<div class="text-xs font-mono text-slate-400 mb-3 uppercase tracking-wider">Active Sessions</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-surface-border group hover:border-primary/30 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-border/30 flex items-center justify-center">
+<span class="material-icons text-slate-400 text-sm">laptop_mac</span>
+</div>
+<div>
+<div class="text-sm text-white font-medium">MacBook Pro M2</div>
+<div class="text-[10px] text-green-500 font-mono flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active Now
+            </div>
+</div>
+</div>
+<button class="text-xs text-slate-500 hover:text-red-400 font-mono transition-colors">REVOKE</button>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-surface-border group hover:border-primary/30 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-border/30 flex items-center justify-center">
+<span class="material-icons text-slate-400 text-sm">smartphone</span>
+</div>
+<div>
+<div class="text-sm text-white font-medium">iPhone 15 Pro</div>
+<div class="text-[10px] text-slate-500 font-mono">Last seen 2h ago</div>
+</div>
+</div>
+<button class="text-xs text-slate-500 hover:text-red-400 font-mono transition-colors">REVOKE</button>
+</div>
+</div>
+</div>
+<button class="w-full py-4 bg-surface-border/20 hover:bg-primary/10 border border-primary/30 hover:border-primary text-primary hover:text-white rounded-lg transition-all group relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity blur-md"></div>
+<div class="relative flex items-center justify-center gap-3 font-mono font-bold">
+<span class="material-symbols-outlined text-xl">face</span>
+        ADD NEW PASSKEY
+      </div>
+</button>
+</div>
+</div>
+<header class="h-14 border-b border-surface-border bg-surface-dark/80 backdrop-blur-md flex items-center justify-between px-6 z-50 shrink-0 relative">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/30">
+<span class="material-symbols-outlined text-primary text-lg">token</span>
+</div>
+<h1 class="text-2xl font-bold tracking-[0.2em] text-white">CEXON</h1>
+</div>
+<div class="flex items-center gap-6 text-xs font-mono">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded bg-surface-border/30 border border-surface-border/50 cursor-pointer hover:border-primary/30 transition-colors" onclick="document.querySelector('.fixed.inset-0').classList.toggle('opacity-0'); document.querySelector('.fixed.inset-0').classList.toggle('pointer-events-none')">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+</span>
+<span class="text-slate-400">WALLET:</span>
+<span class="text-white font-semibold">FaceID ACTIVE</span>
+</div>
+<div class="relative group">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded bg-surface-border/30 border border-surface-border/50 hover:border-primary/50 transition-colors cursor-pointer z-50 relative">
+<span class="text-slate-400">GAS:</span>
+<span class="text-primary font-semibold group-hover:text-white transition-colors">USDC</span>
+<span class="material-icons text-[14px] text-slate-500 group-hover:rotate-180 transition-transform">expand_more</span>
+</div>
+<div class="absolute top-full right-0 mt-2 w-64 bg-surface-dark border border-surface-border rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-40 transform translate-y-2 group-hover:translate-y-0">
+<div class="p-3 border-b border-surface-border/50">
+<div class="text-[10px] uppercase text-slate-500 font-bold tracking-wider mb-2">Mainnet Assets</div>
+<div class="flex justify-between items-center mb-1">
+<span class="text-white">ETH</span>
+<span class="text-slate-300">0.4521</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-white">USDC</span>
+<span class="text-slate-300">1,240.50</span>
+</div>
+</div>
+<div class="p-3 bg-primary/5">
+<div class="text-[10px] uppercase text-primary font-bold tracking-wider mb-2 flex items-center gap-1">
+<span class="material-icons text-[10px]">science</span> Testnet Tools
+          </div>
+<div class="flex justify-between items-center mb-3">
+<span class="text-slate-300">Faucet Balance</span>
+<span class="text-white font-mono">10,000 USDC</span>
+</div>
+<button class="w-full py-1.5 rounded border border-primary text-primary hover:bg-primary hover:text-black transition-colors flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wide">
+<span class="material-icons text-[12px]">auto_awesome</span>
+            Mint Test Tokens
+          </button>
+</div>
+</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-blue-600 p-[1px]">
+<div class="w-full h-full rounded-full bg-surface-dark flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" data-alt="Cyberpunk avatar profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDK63RxlF-2H1E40Mm5TylWdjf35LXsP8zkQ49XXfC1AVIoHPW_Rg57WW1q3tplzF4hf9j5hJ3Pa_X3y3UtUyggq8i5pFinAmUgLxf5o-I2sS1Y5B8mTT_KH1PpDhkESYXbHMBi1w3PXUL_yzlBurEsxS7zMUk3Z-WV2SaUs_rkQUWyd0QveEAbkM5ah0uv18PW_T-XHUKmGUpUjgGrUr6MoxdBIEXZ69OXAkhXLnfTrBRnXP8t7jbLzE-QNZz074txcvbfrKg3BOI"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 grid grid-cols-12 divide-x divide-surface-border overflow-hidden">
+<aside class="col-span-12 lg:col-span-3 bg-surface-dark flex flex-col h-full">
+<div class="p-4 border-b border-surface-border">
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-2 text-white font-bold text-lg font-mono">
+<img class="w-6 h-6" data-alt="Ethereum logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAetREr9xoX1ERk_iHmMxe2LY7iFE_k63gQuVaPlYSSpW5R9gu9pdaf0-fsKmYSTmhht_0MiZltXBv1CfDRvBL4K3ZF23JxZUgPGGRg88Z_DDnwDOuYPLG6UJC9d7xkkQQ54tnUSH7xh37z05Gu4GZ_KK3qRQCbV4waFKz4inlQUMaLeyclmsZX0AEEHDpEthKQWlgpESqkiWPwmtQ-sEBfBZQcIDY6CitRrdMQROB6RnsDgg3Oaqoez6KznFj2xRUlWF4XfwgbQTU"/>
+                        ETH / USDC
+                    </div>
+<span class="text-green-500 text-sm font-mono flex items-center">
+                        +2.4% <span class="material-icons text-sm">arrow_drop_up</span>
+</span>
+</div>
+<div class="flex justify-between text-xs text-slate-500 font-mono">
+<span>Vol: $1.2B</span>
+<span>24h High: 2,450.00</span>
+</div>
+</div>
+<div class="flex border-b border-surface-border">
+<button class="flex-1 py-3 text-sm font-medium text-white border-b-2 border-primary bg-primary/5">Limit</button>
+<button class="flex-1 py-3 text-sm font-medium text-slate-500 hover:text-white hover:bg-white/5 transition-colors">Market</button>
+<button class="flex-1 py-3 text-sm font-medium text-slate-500 hover:text-white hover:bg-white/5 transition-colors">Stop</button>
+</div>
+<div class="p-5 flex flex-col gap-5 flex-1 overflow-y-auto">
+<div class="flex gap-2 p-1 bg-black/40 rounded-lg border border-surface-border">
+<button class="flex-1 py-1.5 text-xs font-bold rounded bg-green-500/20 text-green-400 border border-green-500/30">BUY</button>
+<button class="flex-1 py-1.5 text-xs font-bold rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">SELL</button>
+</div>
+<div class="bg-black/40 rounded border border-surface-border p-3">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Lane Health</span>
+<span class="text-[10px] text-primary font-mono">Smart Routing: Lane #1</span>
+</div>
+<div class="flex gap-1.5">
+<div class="flex-1 h-1.5 bg-surface-border/30 rounded-full overflow-hidden relative group cursor-help" title="Lane 1: Ready">
+<div class="absolute inset-0 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+</div>
+<div class="flex-1 h-1.5 bg-surface-border/30 rounded-full overflow-hidden relative group cursor-help" title="Lane 2: Ready">
+<div class="absolute inset-0 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+</div>
+<div class="flex-1 h-1.5 bg-surface-border/30 rounded-full overflow-hidden relative group cursor-help" title="Lane 3: Processing">
+<div class="absolute inset-0 bg-yellow-500 animate-pulse"></div>
+</div>
+<div class="flex-1 h-1.5 bg-surface-border/30 rounded-full overflow-hidden relative group cursor-help" title="Lane 4: Idle">
+<div class="absolute inset-0 bg-slate-600"></div>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between mb-1.5">
+<label class="text-xs text-slate-400 font-medium">Price (USDC)</label>
+<span class="text-xs text-primary cursor-pointer font-mono hover:underline">Last: 2,412.50</span>
+</div>
+<div class="relative group">
+<input class="w-full bg-black border border-surface-border rounded p-3 pl-4 pr-12 text-right text-white font-mono focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all group-hover:border-slate-600" type="text" value="2410.00"/>
+<span class="absolute right-3 top-3.5 text-xs text-slate-600 font-mono pointer-events-none">USDC</span>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-1.5">
+<label class="text-xs text-slate-400 font-medium">Amount (ETH)</label>
+<span class="text-xs text-slate-500 font-mono">Max: 14.2</span>
+</div>
+<div class="relative group">
+<input class="w-full bg-black border border-surface-border rounded p-3 pl-4 pr-12 text-right text-white font-mono focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all group-hover:border-slate-600" type="text" value="4.5"/>
+<span class="absolute right-3 top-3.5 text-xs text-slate-600 font-mono pointer-events-none">ETH</span>
+</div>
+<div class="flex justify-between gap-1 mt-2">
+<button class="flex-1 py-1 text-[10px] bg-surface-border/30 rounded text-slate-400 hover:text-white hover:bg-surface-border">25%</button>
+<button class="flex-1 py-1 text-[10px] bg-surface-border/30 rounded text-slate-400 hover:text-white hover:bg-surface-border">50%</button>
+<button class="flex-1 py-1 text-[10px] bg-surface-border/30 rounded text-slate-400 hover:text-white hover:bg-surface-border">75%</button>
+<button class="flex-1 py-1 text-[10px] bg-surface-border/30 rounded text-slate-400 hover:text-white hover:bg-surface-border">100%</button>
+</div>
+</div>
+<div class="pt-4 border-t border-surface-border/50">
+<div class="flex justify-between mb-1.5">
+<label class="text-xs text-slate-300 font-medium">Total</label>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-border/10 border border-surface-border/50 rounded p-3 pl-4 pr-12 text-right text-slate-300 font-mono" readonly="" type="text" value="10,845.00"/>
+<span class="absolute right-3 top-3.5 text-xs text-slate-600 font-mono">USDC</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-6">
+<div class="flex items-center justify-between text-xs text-slate-500 mb-3 font-mono">
+<span>Est. Fee</span>
+<span>0.0012 ETH</span>
+</div>
+<button class="w-full bg-gradient-to-r from-primary to-cyan-400 hover:from-cyan-400 hover:to-primary text-black font-bold py-3.5 rounded shadow-glow transition-all transform active:scale-[0.99] font-mono text-sm tracking-wide">
+                        BUY ETH
+                    </button>
+</div>
+</div>
+</aside>
+<section class="col-span-12 lg:col-span-6 flex flex-col bg-background-dark relative">
+<div class="h-10 border-b border-surface-border flex items-center px-4 justify-between bg-surface-dark/50">
+<div class="flex gap-4 text-xs font-mono text-slate-400">
+<span class="hover:text-white cursor-pointer">1m</span>
+<span class="hover:text-white cursor-pointer">5m</span>
+<span class="text-primary cursor-pointer border-b border-primary">15m</span>
+<span class="hover:text-white cursor-pointer">1h</span>
+<span class="hover:text-white cursor-pointer">4h</span>
+<span class="hover:text-white cursor-pointer">D</span>
+</div>
+<div class="flex gap-3">
+<span class="material-icons text-slate-500 text-sm hover:text-white cursor-pointer">settings</span>
+<span class="material-icons text-slate-500 text-sm hover:text-white cursor-pointer">fullscreen</span>
+</div>
+</div>
+<div class="flex-1 relative grid-bg p-4 flex flex-col justify-center items-center overflow-hidden">
+<div class="absolute inset-0 flex items-end justify-between px-10 pb-10 gap-1 opacity-80 pointer-events-none">
+<div class="w-2 bg-slate-800 h-[20%] rounded-sm relative"><div class="absolute bottom-full left-1/2 w-[1px] h-4 bg-slate-600 -translate-x-1/2"></div></div>
+<div class="w-2 bg-green-500 h-[35%] rounded-sm relative shadow-lg shadow-green-500/20"><div class="absolute top-full left-1/2 w-[1px] h-8 bg-green-500 -translate-x-1/2"></div></div>
+<div class="w-2 bg-red-500 h-[25%] rounded-sm relative"><div class="absolute bottom-full left-1/2 w-[1px] h-2 bg-red-500 -translate-x-1/2"></div></div>
+<div class="w-2 bg-green-500 h-[40%] rounded-sm relative shadow-lg shadow-green-500/20"><div class="absolute top-full left-1/2 w-[1px] h-4 bg-green-500 -translate-x-1/2"></div></div>
+<div class="w-2 bg-green-500 h-[45%] rounded-sm relative shadow-lg shadow-green-500/20"><div class="absolute top-0 left-1/2 w-[1px] h-2 bg-green-500 -translate-x-1/2 -translate-y-full"></div></div>
+<div class="w-2 bg-red-500 h-[30%] rounded-sm relative"><div class="absolute bottom-0 left-1/2 w-[1px] h-6 bg-red-500 -translate-x-1/2 translate-y-full"></div></div>
+<div class="w-2 bg-slate-800 h-[22%] rounded-sm relative"></div>
+<div class="w-2 bg-green-500 h-[50%] rounded-sm relative shadow-lg shadow-green-500/20"><div class="absolute top-0 left-1/2 w-[1px] h-6 bg-green-500 -translate-x-1/2 -translate-y-full"></div></div>
+<div class="w-2 bg-green-500 h-[55%] rounded-sm relative shadow-lg shadow-green-500/20"></div>
+<div class="w-2 bg-red-500 h-[40%] rounded-sm relative"></div>
+<div class="w-2 bg-green-500 h-[60%] rounded-sm relative shadow-lg shadow-green-500/20"><div class="absolute top-0 left-1/2 w-[1px] h-12 bg-green-500 -translate-x-1/2 -translate-y-full"></div></div>
+<div class="w-2 bg-red-500 h-[45%] rounded-sm relative"></div>
+<div class="w-2 bg-slate-800 h-[30%] rounded-sm relative"></div>
+<div class="w-2 bg-green-500 h-[42%] rounded-sm relative shadow-lg shadow-green-500/20"></div>
+<div class="w-2 bg-green-500 h-[65%] rounded-sm relative shadow-lg shadow-green-500/20"><div class="absolute top-0 left-1/2 w-[1px] h-4 bg-green-500 -translate-x-1/2 -translate-y-full"></div></div>
+<div class="w-2 bg-red-500 h-[50%] rounded-sm relative"><div class="absolute bottom-0 left-1/2 w-[1px] h-4 bg-red-500 -translate-x-1/2 translate-y-full"></div></div>
+<div class="w-2 bg-green-500 h-[58%] rounded-sm relative shadow-lg shadow-green-500/20"></div>
+<div class="w-2 bg-green-500 h-[70%] rounded-sm relative shadow-lg shadow-green-500/20"><div class="absolute top-0 left-1/2 w-[1px] h-10 bg-green-500 -translate-x-1/2 -translate-y-full"></div></div>
+</div>
+<div class="absolute top-4 left-4 font-mono text-xs">
+<div class="flex gap-4 mb-2">
+<span class="text-slate-400">O <span class="text-white">2408.2</span></span>
+<span class="text-slate-400">H <span class="text-white">2415.5</span></span>
+<span class="text-slate-400">L <span class="text-white">2405.1</span></span>
+<span class="text-slate-400">C <span class="text-white">2412.5</span></span>
+</div>
+<div class="text-primary/40 text-[10px]">MA(7): 2409.1 • EMA(25): 2398.4</div>
+</div>
+</div>
+<div class="h-48 border-t border-surface-border bg-surface-dark p-4 flex flex-col gap-3">
+<div class="flex justify-between items-center mb-1">
+<h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+<span class="material-icons text-primary text-sm animate-pulse">grain</span>
+                        Lane Visualizer
+                    </h3>
+<span class="text-[10px] font-mono text-slate-500 bg-surface-border/20 px-2 py-0.5 rounded">2D NONCE MODE</span>
+</div>
+<div class="flex-1 flex flex-col gap-3 justify-center">
+<div class="flex items-center gap-3">
+<span class="text-[10px] font-mono text-slate-500 w-12 text-right">LANE 01</span>
+<div class="flex-1 h-1.5 bg-black rounded-full overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full w-[85%] bg-primary shadow-glow-sm rounded-full pulse-bar" style="animation-duration: 1.2s;"></div>
+</div>
+<span class="text-[10px] font-mono text-primary w-8 text-right">4ms</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[10px] font-mono text-slate-500 w-12 text-right">LANE 02</span>
+<div class="flex-1 h-1.5 bg-black rounded-full overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full w-[60%] bg-primary/70 shadow-glow-sm rounded-full pulse-bar" style="animation-duration: 2.5s; animation-delay: 0.3s;"></div>
+</div>
+<span class="text-[10px] font-mono text-primary/70 w-8 text-right">12ms</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[10px] font-mono text-slate-500 w-12 text-right">LANE 03</span>
+<div class="flex-1 h-1.5 bg-black rounded-full overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full w-[92%] bg-primary shadow-glow-sm rounded-full pulse-bar" style="animation-duration: 0.9s; animation-delay: 0.1s;"></div>
+</div>
+<span class="text-[10px] font-mono text-primary w-8 text-right">2ms</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[10px] font-mono text-slate-500 w-12 text-right">LANE 04</span>
+<div class="flex-1 h-1.5 bg-black rounded-full overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full w-[45%] bg-primary/40 shadow-glow-sm rounded-full pulse-bar" style="animation-duration: 3s; animation-delay: 0.5s;"></div>
+</div>
+<span class="text-[10px] font-mono text-primary/40 w-8 text-right">24ms</span>
+</div>
+</div>
+</div>
+</section>
+<aside class="col-span-12 lg:col-span-3 bg-surface-dark flex flex-col h-full border-l border-surface-border">
+<div class="p-3 border-b border-surface-border flex justify-between items-center">
+<h3 class="text-sm font-medium text-slate-300">Order Book</h3>
+<div class="flex gap-1">
+<button class="p-1 hover:bg-surface-border/50 rounded text-slate-500 hover:text-white transition-colors">
+<span class="material-icons text-sm">vertical_align_center</span>
+</button>
+<button class="p-1 hover:bg-surface-border/50 rounded text-slate-500 hover:text-white transition-colors">
+<span class="material-icons text-sm">filter_list</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-3 px-3 py-2 text-[10px] uppercase text-slate-500 font-mono font-bold tracking-wider border-b border-surface-border/50">
+<div class="text-left">Price (USDC)</div>
+<div class="text-right">Size (ETH)</div>
+<div class="text-right">Sum</div>
+</div>
+<div class="flex-1 overflow-y-auto font-mono text-xs custom-scrollbar">
+<div class="flex flex-col-reverse">
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-ask" style="--percent: 20%">
+<div class="text-ask-red">2415.50</div>
+<div class="text-right text-slate-300">0.45</div>
+<div class="text-right text-slate-500">45.2</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-ask" style="--percent: 45%">
+<div class="text-ask-red">2415.00</div>
+<div class="text-right text-slate-300">2.12</div>
+<div class="text-right text-slate-500">44.75</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-ask" style="--percent: 15%">
+<div class="text-ask-red">2414.85</div>
+<div class="text-right text-slate-300">0.89</div>
+<div class="text-right text-slate-500">42.63</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-ask" style="--percent: 30%">
+<div class="text-ask-red">2414.50</div>
+<div class="text-right text-slate-300">1.50</div>
+<div class="text-right text-slate-500">41.74</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-ask" style="--percent: 10%">
+<div class="text-ask-red">2414.25</div>
+<div class="text-right text-slate-300">0.20</div>
+<div class="text-right text-slate-500">40.24</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-ask" style="--percent: 60%">
+<div class="text-ask-red">2414.00</div>
+<div class="text-right text-slate-300">5.50</div>
+<div class="text-right text-slate-500">40.04</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-ask" style="--percent: 25%">
+<div class="text-ask-red">2413.50</div>
+<div class="text-right text-slate-300">1.20</div>
+<div class="text-right text-slate-500">34.54</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-ask" style="--percent: 8%">
+<div class="text-ask-red">2413.25</div>
+<div class="text-right text-slate-300">0.15</div>
+<div class="text-right text-slate-500">33.34</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-ask" style="--percent: 8%">
+<div class="text-ask-red">2412.95</div>
+<div class="text-right text-slate-300">0.15</div>
+<div class="text-right text-slate-500">33.19</div>
+</div>
+</div>
+<div class="py-2 px-3 my-1 bg-surface-border/20 border-y border-surface-border flex justify-between items-center">
+<span class="text-primary font-bold text-base">2412.50</span>
+<span class="text-[10px] text-slate-500 flex items-center gap-1">
+                        Spread: 0.45 <span class="material-icons text-[10px]">equalizer</span>
+</span>
+</div>
+<div class="flex flex-col">
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 55%">
+<div class="text-primary">2412.05</div>
+<div class="text-right text-slate-300">3.45</div>
+<div class="text-right text-slate-500">3.45</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 22%">
+<div class="text-primary">2411.80</div>
+<div class="text-right text-slate-300">1.20</div>
+<div class="text-right text-slate-500">4.65</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 80%">
+<div class="text-primary">2411.50</div>
+<div class="text-right text-slate-300">8.50</div>
+<div class="text-right text-slate-500">13.15</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 15%">
+<div class="text-primary">2411.25</div>
+<div class="text-right text-slate-300">0.80</div>
+<div class="text-right text-slate-500">13.95</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 35%">
+<div class="text-primary">2411.00</div>
+<div class="text-right text-slate-300">2.10</div>
+<div class="text-right text-slate-500">16.05</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 45%">
+<div class="text-primary">2410.85</div>
+<div class="text-right text-slate-300">3.00</div>
+<div class="text-right text-slate-500">19.05</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 12%">
+<div class="text-primary">2410.50</div>
+<div class="text-right text-slate-300">0.50</div>
+<div class="text-right text-slate-500">19.55</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 65%">
+<div class="text-primary">2410.25</div>
+<div class="text-right text-slate-300">4.20</div>
+<div class="text-right text-slate-500">23.75</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 30%">
+<div class="text-primary">2410.00</div>
+<div class="text-right text-slate-300">1.80</div>
+<div class="text-right text-slate-500">25.55</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 hover:bg-surface-border/20 cursor-pointer depth-bg-bid" style="--percent: 18%">
+<div class="text-primary">2409.85</div>
+<div class="text-right text-slate-300">0.95</div>
+<div class="text-right text-slate-500">26.50</div>
+</div>
+</div>
+<div class="px-3 py-2 mt-4 text-[10px] uppercase text-slate-500 font-mono font-bold tracking-wider border-t border-b border-surface-border/50">
+                    Recent Trades
+                </div>
+<div class="flex flex-col">
+<div class="grid grid-cols-3 px-2 py-0.5 opacity-60">
+<div class="text-ask-red">2412.50</div>
+<div class="text-right text-slate-400">0.10</div>
+<div class="text-right text-slate-600">14:22:01</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 opacity-60">
+<div class="text-primary">2412.45</div>
+<div class="text-right text-slate-400">0.55</div>
+<div class="text-right text-slate-600">14:22:00</div>
+</div>
+<div class="grid grid-cols-3 px-2 py-0.5 opacity-60">
+<div class="text-primary">2412.45</div>
+<div class="text-right text-slate-400">1.25</div>
+<div class="text-right text-slate-600">14:21:58</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<footer class="h-8 bg-surface-dark border-t border-surface-border flex items-center justify-between px-4 text-[10px] font-mono shrink-0">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                System Status: 12ms Latency
+            </div>
+<div class="text-slate-400">
+                Parallel Lanes: <span class="text-white">4/4 Active</span>
+</div>
+<div class="text-slate-400 hidden sm:block">
+                Build: v2.4.0-rc1
+            </div>
+</div>
+<div class="flex items-center gap-4 text-slate-500">
+<div class="flex items-center gap-1.5">
+<span class="material-icons text-[12px] text-green-500">wifi</span>
+<span class="text-slate-300">Stable Connection</span>
+</div>
+<span>Server: HK-07</span>
+<span>24/7 Support</span>
+</div>
+</footer>
+</body></html>

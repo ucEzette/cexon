@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cexon Liquidity Pool Dashboard</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#0df2df",
+              "primary-dim": "rgba(13, 242, 223, 0.1)",
+              "background-light": "#f5f8f8",
+              "background-dark": "#050505",
+              "surface-dark": "#121212",
+              "border-dark": "#333333",
+              "text-muted": "#888888"
+            },
+            fontFamily: {
+              "display": ["Manrope", "sans-serif"],
+              "mono": ["JetBrains Mono", "monospace"],
+            },
+            borderRadius: {
+                DEFAULT: "0.25rem", 
+                "lg": "0.5rem", 
+                "xl": "0.75rem", 
+                "full": "9999px"
+            },
+            boxShadow: {
+                'neon': '0 0 10px rgba(13, 242, 223, 0.3), 0 0 20px rgba(13, 242, 223, 0.1)',
+                'neon-sm': '0 0 5px rgba(13, 242, 223, 0.5)',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Custom Scrollbar for the terminal feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+
+        /* Utility for chart grid lines */
+        .chart-grid {
+            background-image: linear-gradient(#333 1px, transparent 1px),
+            linear-gradient(90deg, #333 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: -1px -1px;
+        }
+
+        /* Circular Progress */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-white font-display min-h-screen flex flex-col">
+<!-- Top Navigation / Header -->
+<header class="h-16 border-b border-border-dark flex items-center justify-between px-6 bg-surface-dark/50 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-2">
+<span class="material-icons text-primary text-3xl">hub</span>
+<span class="text-xl font-bold tracking-wider">CEXON <span class="text-primary text-sm font-normal align-top">TERMINAL v2.4</span></span>
+</div>
+<nav class="hidden md:flex ml-8 space-x-1">
+<a class="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors" href="#">Trade</a>
+<a class="px-4 py-2 text-sm text-primary bg-primary-dim rounded border border-primary/20" href="#">Liquidity</a>
+<a class="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors" href="#">Governance</a>
+</nav>
+</div>
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-2 px-3 py-1 bg-black rounded border border-border-dark">
+<div class="w-2 h-2 rounded-full bg-primary shadow-neon-sm"></div>
+<span class="font-mono text-xs text-primary">RPC: SYNCHRONIZED</span>
+</div>
+<div class="flex items-center space-x-2 cursor-pointer hover:bg-white/5 px-3 py-1.5 rounded transition-colors">
+<img alt="Avatar" class="w-6 h-6 rounded-full" data-alt="User wallet avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsKGPbZ25cY2y02qh1m7rbonxcMOhI58u6-tiH25w7rcJG08jD8u--8NnQ6bnxDFn9eAvVcDyzb1rNi6ubYCObanN-59fc648rfYTgxYpgiMMURO472uV8o-AI9MP5Ipj44fdRAFwdoaGSDwDb9CYL5bzxOvW5-fORycvq4zr_XE7GAroM1I-R6JYdfSoz4kHExUsfc9cGAkqW1a63cDe9z35vC_jicIooVrVqOTmudwb3IRdWWO4opb4fiBFX2kx9nPDsol10l6I"/>
+<span class="font-mono text-sm">0x3f...8a21</span>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden">
+<!-- Left Column: Metrics & Pools (Span 8) -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Top Section: Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- TVL Card -->
+<div class="bg-surface-dark border border-border-dark p-6 rounded-lg relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-16 -mt-16 group-hover:bg-primary/10 transition-all duration-500"></div>
+<div class="relative z-10">
+<h3 class="text-text-muted text-xs uppercase tracking-widest mb-1">Total Value Locked</h3>
+<div class="text-3xl md:text-4xl font-bold font-mono text-primary shadow-neon-sm inline-block text-transparent bg-clip-text bg-gradient-to-r from-primary to-white">
+                            $4,281,902,110
+                        </div>
+<div class="mt-2 flex items-center text-xs text-green-400 font-mono">
+<span class="material-icons text-sm mr-1">trending_up</span>
+                            +2.4% (24h)
+                        </div>
+</div>
+</div>
+<!-- Your Liquidity Card -->
+<div class="bg-surface-dark border border-border-dark p-6 rounded-lg">
+<h3 class="text-text-muted text-xs uppercase tracking-widest mb-1">Your Liquidity</h3>
+<div class="text-2xl font-bold font-mono text-white">
+                        $125,400.52
+                    </div>
+<div class="mt-2 text-xs text-text-muted font-mono">
+                        ~ 32.4 ETH / 45,000 USDC
+                    </div>
+</div>
+<!-- Fees Card -->
+<div class="bg-surface-dark border border-border-dark p-6 rounded-lg flex flex-col justify-between">
+<div>
+<h3 class="text-text-muted text-xs uppercase tracking-widest mb-1">Accrued Fees</h3>
+<div class="text-2xl font-bold font-mono text-white flex items-center justify-between">
+                            $1,240.88
+                            <span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">+12% APY</span>
+</div>
+</div>
+<div class="w-full bg-gray-800 h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-3/4 shadow-[0_0_10px_#0df2df]"></div>
+</div>
+</div>
+</div>
+<!-- Main Grid: Pool List & Chart Split -->
+<div class="grid grid-cols-1 gap-6 flex-1 min-h-0">
+<!-- Chart Section -->
+<div class="bg-surface-dark border border-border-dark rounded-lg p-5 flex flex-col h-[400px]">
+<div class="flex justify-between items-center mb-4">
+<div class="flex items-center space-x-3">
+<h2 class="font-bold text-lg">ETH/USDC Liquidity Depth</h2>
+<span class="px-2 py-0.5 bg-gray-800 text-xs rounded font-mono text-gray-400">0.05% Tier</span>
+</div>
+<div class="flex space-x-2">
+<button class="px-3 py-1 text-xs font-mono bg-primary/10 text-primary border border-primary/30 rounded">Depth</button>
+<button class="px-3 py-1 text-xs font-mono bg-transparent text-text-muted hover:text-white border border-transparent hover:border-border-dark rounded">Volume</button>
+</div>
+</div>
+<!-- Chart Visualization Area -->
+<div class="relative flex-1 w-full bg-black/40 rounded border border-border-dark overflow-hidden chart-grid">
+<!-- Abstract Representation of Liquidity Depth -->
+<div class="absolute bottom-0 left-0 right-0 h-3/4 flex items-end justify-center px-8 space-x-1 opacity-80">
+<!-- Left side (bids) -->
+<div class="flex-1 flex items-end justify-end space-x-[2px]">
+<div class="w-full bg-green-900/40 h-[10%]" style="border-top: 1px solid #22c55e"></div>
+<div class="w-full bg-green-900/40 h-[15%]" style="border-top: 1px solid #22c55e"></div>
+<div class="w-full bg-green-900/40 h-[25%]" style="border-top: 1px solid #22c55e"></div>
+<div class="w-full bg-green-900/40 h-[40%]" style="border-top: 1px solid #22c55e"></div>
+<div class="w-full bg-green-900/40 h-[65%]" style="border-top: 1px solid #22c55e"></div>
+</div>
+<!-- Current Price Indicator -->
+<div class="w-[2px] h-full bg-primary relative z-10 shadow-neon">
+<div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-dark border border-primary text-primary text-[10px] font-mono px-2 py-0.5 rounded whitespace-nowrap">
+                                    $2,240.52
+                                </div>
+</div>
+<!-- Right side (asks) -->
+<div class="flex-1 flex items-end justify-start space-x-[2px]">
+<div class="w-full bg-red-900/30 h-[70%]" style="border-top: 1px solid #ef4444"></div>
+<div class="w-full bg-red-900/30 h-[45%]" style="border-top: 1px solid #ef4444"></div>
+<div class="w-full bg-red-900/30 h-[30%]" style="border-top: 1px solid #ef4444"></div>
+<div class="w-full bg-red-900/30 h-[20%]" style="border-top: 1px solid #ef4444"></div>
+<div class="w-full bg-red-900/30 h-[10%]" style="border-top: 1px solid #ef4444"></div>
+</div>
+</div>
+<!-- Active Range Overlay -->
+<div class="absolute bottom-0 left-[35%] right-[35%] top-[20%] border-x-2 border-dashed border-primary/50 bg-primary/5 pointer-events-none flex justify-center pt-4">
+<span class="text-xs text-primary font-mono bg-black/80 px-2 h-6 rounded">Your Range</span>
+</div>
+</div>
+</div>
+<!-- Pool List -->
+<div class="bg-surface-dark border border-border-dark rounded-lg overflow-hidden flex flex-col">
+<div class="px-6 py-4 border-b border-border-dark flex justify-between items-center bg-black/20">
+<h3 class="font-bold">Active Pools</h3>
+<div class="flex space-x-2 text-xs font-mono text-text-muted">
+<span class="cursor-pointer hover:text-white">All</span>
+<span class="text-border-dark">|</span>
+<span class="cursor-pointer hover:text-white text-primary">My Positions</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="text-xs text-text-muted uppercase bg-black/40 font-mono">
+<tr>
+<th class="px-6 py-3 font-medium">Pool</th>
+<th class="px-6 py-3 font-medium text-right">APR</th>
+<th class="px-6 py-3 font-medium text-center">Efficiency</th>
+<th class="px-6 py-3 font-medium">Range</th>
+<th class="px-6 py-3 font-medium text-right">Liquidity</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark text-sm">
+<!-- Row 1: Selected -->
+<tr class="bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer group border-l-2 border-l-primary">
+<td class="px-6 py-4">
+<div class="flex items-center space-x-3">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center border-2 border-surface-dark z-10">
+<span class="material-icons text-base text-white">diamond</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center border-2 border-surface-dark z-0">
+<span class="material-icons text-base text-white">attach_money</span>
+</div>
+</div>
+<div>
+<div class="font-bold">ETH / USDC</div>
+<div class="text-xs text-text-muted font-mono">0.05%</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right font-mono text-primary font-bold">24.5%</td>
+<td class="px-6 py-4 flex justify-center">
+<div class="relative w-10 h-10">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-gray-700 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-primary progress-ring__circle stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="60" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono">92%</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="font-mono text-xs">
+<div class="text-green-400">Min: 1,800.00</div>
+<div class="text-red-400">Max: 2,600.00</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right font-mono text-text-muted">$84,210</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-white/5 transition-colors cursor-pointer border-l-2 border-l-transparent">
+<td class="px-6 py-4">
+<div class="flex items-center space-x-3">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center border-2 border-surface-dark z-10">
+<span class="material-icons text-base text-white">bolt</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center border-2 border-surface-dark z-0">
+<span class="material-icons text-base text-white">attach_money</span>
+</div>
+</div>
+<div>
+<div class="font-bold">SOL / USDC</div>
+<div class="text-xs text-text-muted font-mono">0.3%</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right font-mono text-primary font-bold">88.2%</td>
+<td class="px-6 py-4 flex justify-center">
+<div class="relative w-10 h-10">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-gray-700 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-primary progress-ring__circle stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="120" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono">65%</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="font-mono text-xs text-text-muted">
+<span class="bg-gray-800 px-1 rounded">Out of Range</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right font-mono text-text-muted">$41,190</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-white/5 transition-colors cursor-pointer border-l-2 border-l-transparent">
+<td class="px-6 py-4">
+<div class="flex items-center space-x-3">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center border-2 border-surface-dark z-10">
+<span class="material-icons text-base text-white">currency_bitcoin</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center border-2 border-surface-dark z-0">
+<span class="material-icons text-base text-white">diamond</span>
+</div>
+</div>
+<div>
+<div class="font-bold">WBTC / ETH</div>
+<div class="text-xs text-text-muted font-mono">0.05%</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right font-mono text-text-muted">12.1%</td>
+<td class="px-6 py-4 flex justify-center">
+<div class="relative w-10 h-10">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-gray-700 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-primary progress-ring__circle stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="200" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono">20%</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="font-mono text-xs text-text-muted">
+<span class="bg-gray-800 px-1 rounded">Full Range</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right font-mono text-text-muted">$0.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Sidebar: Management (Span 4) -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Management Card -->
+<div class="bg-surface-dark border border-border-dark rounded-lg flex flex-col h-fit sticky top-24">
+<!-- Tabs -->
+<div class="flex border-b border-border-dark">
+<button class="flex-1 py-4 text-sm font-bold text-black bg-primary border-b-2 border-primary">Add Liquidity</button>
+<button class="flex-1 py-4 text-sm font-bold text-text-muted hover:text-white bg-black/20 hover:bg-black/40 border-b-2 border-transparent transition-colors">Remove</button>
+</div>
+<div class="p-6 space-y-6">
+<!-- Pair Header -->
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-2">
+<div class="flex -space-x-1">
+<div class="w-6 h-6 rounded-full bg-gray-700 border border-surface-dark"></div>
+<div class="w-6 h-6 rounded-full bg-blue-600 border border-surface-dark"></div>
+</div>
+<span class="font-bold">ETH / USDC</span>
+</div>
+<span class="text-xs font-mono text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20">V3</span>
+</div>
+<!-- Input 1 -->
+<div class="space-y-2">
+<div class="flex justify-between text-xs text-text-muted">
+<label>Deposit Amount</label>
+<span class="font-mono">Bal: 4.21 ETH</span>
+</div>
+<div class="relative">
+<input class="w-full bg-black border border-border-dark rounded-lg py-3 pl-4 pr-16 text-lg font-mono text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder-gray-700" type="text" value="0.00"/>
+<div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2">
+<button class="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded hover:bg-primary/20 transition-colors">MAX</button>
+<span class="font-bold text-sm text-text-muted">ETH</span>
+</div>
+</div>
+</div>
+<!-- Input 2 -->
+<div class="space-y-2">
+<div class="flex justify-between text-xs text-text-muted">
+<label>Deposit Amount</label>
+<span class="font-mono">Bal: 12,400 USDC</span>
+</div>
+<div class="relative">
+<input class="w-full bg-black border border-border-dark rounded-lg py-3 pl-4 pr-16 text-lg font-mono text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder-gray-700" type="text" value="0.00"/>
+<div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2">
+<button class="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded hover:bg-primary/20 transition-colors">MAX</button>
+<span class="font-bold text-sm text-text-muted">USDC</span>
+</div>
+</div>
+</div>
+<!-- Price Range (Simplified) -->
+<div class="bg-black/30 p-4 rounded-lg border border-border-dark space-y-3">
+<div class="flex justify-between items-center">
+<label class="text-xs font-bold text-gray-300">Set Price Range</label>
+<span class="material-icons text-gray-500 text-sm cursor-help">info</span>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-dark border border-border-dark p-2 rounded text-center">
+<div class="text-[10px] text-text-muted uppercase mb-1">Min Price</div>
+<div class="font-mono text-sm">1,800.00</div>
+</div>
+<div class="bg-surface-dark border border-border-dark p-2 rounded text-center">
+<div class="text-[10px] text-text-muted uppercase mb-1">Max Price</div>
+<div class="font-mono text-sm">2,600.00</div>
+</div>
+</div>
+</div>
+<!-- Advanced Settings -->
+<div class="space-y-4 pt-2">
+<!-- Auto Rebalance -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Auto-Rebalance</span>
+<span class="text-[10px] text-text-muted">Automatically adjust range</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary peer-checked:shadow-neon-sm"></div>
+</label>
+</div>
+<!-- Lane Selection -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Execution Lane</span>
+<span class="text-[10px] text-text-muted">Transaction priority</span>
+</div>
+<select class="bg-black text-xs text-white border border-border-dark rounded px-2 py-1 outline-none focus:border-primary font-mono w-24">
+<option>Fast</option>
+<option>Standard</option>
+<option>Private</option>
+</select>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full bg-transparent border border-primary text-primary hover:bg-primary hover:text-black font-bold py-3 rounded-lg transition-all shadow-neon-sm uppercase tracking-wider text-sm">
+                        Approve ETH
+                    </button>
+<div class="text-center text-[10px] text-text-muted">
+                        Estimated Gas: <span class="font-mono text-white">$4.20</span>
+</div>
+</div>
+</div>
+<!-- Fee Harvest History Panel -->
+<div class="bg-surface-dark border border-border-dark rounded-lg flex flex-col flex-1">
+<div class="p-4 border-b border-border-dark flex justify-between items-center">
+<h3 class="font-bold text-sm">Harvest History</h3>
+<button class="text-xs text-primary hover:underline">View All</button>
+</div>
+<div class="flex-1 overflow-y-auto max-h-60 p-2 space-y-1">
+<!-- History Item -->
+<div class="flex justify-between items-center p-2 hover:bg-white/5 rounded transition-colors text-xs">
+<div class="flex items-center space-x-2">
+<span class="material-icons text-green-400 text-sm">call_received</span>
+<div>
+<div class="font-bold">ETH/USDC</div>
+<div class="text-text-muted text-[10px]">2 hours ago</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-mono text-white">0.4 ETH</div>
+<div class="font-mono text-[10px] text-text-muted">+$892.12</div>
+</div>
+</div>
+<!-- History Item -->
+<div class="flex justify-between items-center p-2 hover:bg-white/5 rounded transition-colors text-xs">
+<div class="flex items-center space-x-2">
+<span class="material-icons text-green-400 text-sm">call_received</span>
+<div>
+<div class="font-bold">SOL/USDC</div>
+<div class="text-text-muted text-[10px]">Yesterday</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-mono text-white">12.5 SOL</div>
+<div class="font-mono text-[10px] text-text-muted">+$245.00</div>
+</div>
+</div>
+<!-- History Item -->
+<div class="flex justify-between items-center p-2 hover:bg-white/5 rounded transition-colors text-xs">
+<div class="flex items-center space-x-2">
+<span class="material-icons text-green-400 text-sm">call_received</span>
+<div>
+<div class="font-bold">ETH/USDC</div>
+<div class="text-text-muted text-[10px]">3 days ago</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-mono text-white">0.12 ETH</div>
+<div class="font-mono text-[10px] text-text-muted">+$201.55</div>
+</div>
+</div>
+</div>
+<div class="p-4 border-t border-border-dark">
+<button class="w-full bg-gradient-to-r from-teal-500 to-primary text-black font-bold py-2 rounded shadow-neon text-sm flex items-center justify-center space-x-2 hover:opacity-90 transition-opacity">
+<span class="material-icons text-sm">auto_awesome</span>
+<span>Claim All Rewards</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>
