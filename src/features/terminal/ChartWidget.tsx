@@ -121,9 +121,9 @@ export const ChartWidget = () => {
             size: 1,
         }));
 
-        // Filter out markers with invalid times (outside current chart range for mock)
-        // For simulation, we just show everything recent
-        candlestickSeriesRef.current.setMarkers(markers.slice(-20));
+        // Ensure markers are sorted by time ascending (Assertion failed if not)
+        const sortedMarkers = [...markers].sort((a, b) => (a.time as number) - (b.time as number));
+        candlestickSeriesRef.current.setMarkers(sortedMarkers.slice(-20));
     }, [tradeHistory]);
 
     return (

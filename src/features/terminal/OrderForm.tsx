@@ -13,7 +13,7 @@ import { SmartSplitAgent } from './SmartSplitAgent';
 export const OrderForm = () => {
     const { wallets } = useWallets();
     const { processTrade, lanes } = useLaneManager();
-    const { price } = useMarketStore();
+    const { price, currentPair } = useMarketStore();
     const { userBalance, addOrder, fillOrder, isKillSwitchActive } = useGlobalStore();
 
     const [side, setSide] = useState<'buy' | 'sell'>('buy');
@@ -44,7 +44,7 @@ export const OrderForm = () => {
 
         const newOrder: Order = {
             id: orderId,
-            pair: 'ETH / USDC',
+            pair: currentPair.name,
             side: tradeParams.side,
             price: tradeParams.price,
             amount: tradeParams.amount,
@@ -89,7 +89,7 @@ export const OrderForm = () => {
 
             const newOrder: Order = {
                 id: orderId,
-                pair: 'ETH / USDC',
+                pair: currentPair.name,
                 side: tradeParams.side,
                 price: tradeParams.price,
                 amount: tradeParams.amount,
@@ -228,8 +228,8 @@ export const OrderForm = () => {
 
                 <div>
                     <div className="flex justify-between mb-1.5 text-[11px]">
-                        <label className="text-slate-400 font-medium font-display">Amount (ETH)</label>
-                        <span className="text-slate-500 font-mono">Max: {side === 'buy' ? (userBalance.USDC / price).toFixed(2) : userBalance.ETH.toFixed(2)}</span>
+                        <label className="text-slate-400 font-medium font-display">Amount ({currentPair.name.split('/')[0]})</label>
+                        <span className="text-slate-500 font-mono">Max: {side === 'buy' ? (userBalance.USDC / price).toFixed(6) : userBalance.ETH.toFixed(6)}</span>
                     </div>
                     <div className="relative group">
                         <input
@@ -238,7 +238,7 @@ export const OrderForm = () => {
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                         />
-                        <span className="absolute right-3 top-3.5 text-xs text-slate-600 font-mono pointer-events-none">ETH</span>
+                        <span className="absolute right-3 top-3.5 text-xs text-slate-600 font-mono pointer-events-none">{currentPair.name.split('/')[0]}</span>
                     </div>
                     <div className="flex justify-between gap-1 mt-2">
                         {[25, 50, 75, 100].map(p => (
@@ -294,7 +294,7 @@ export const OrderForm = () => {
                             : "bg-gradient-to-r from-ask-red to-red-400 text-white shadow-ask-red/20"
                     )}
                 >
-                    {side.toUpperCase()} ETH
+                    {side.toUpperCase()} {currentPair.name.split('/')[0]}
                 </button>
             </div>
         </div>

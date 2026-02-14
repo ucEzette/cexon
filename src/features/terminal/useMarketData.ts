@@ -2,6 +2,8 @@
 
 import { create } from 'zustand';
 import { useEffect } from 'react';
+import { Address } from 'viem';
+import { USDC_ADDRESS, ETH_WRAPPER_ADDRESS } from '@/lib/contracts';
 
 // Types
 export interface Order {
@@ -10,23 +12,61 @@ export interface Order {
     total: number;
 }
 
+export interface MarketPair {
+    name: string;
+    tokenA: Address;
+    tokenB: Address;
+    basePrice: number;
+    decimalsA: number; // Quote token (e.g. USDC)
+    decimalsB: number; // Base token (e.g. ETH)
+}
+
 interface MarketDataState {
-    pair: string;
+    pairs: MarketPair[];
+    currentPair: MarketPair;
     price: number;
     change24h: number;
     bids: Order[];
     asks: Order[];
     setPrice: (price: number) => void;
+    setPair: (pairName: string) => void;
     generateMockData: () => void;
 }
 
+const INITIAL_PAIRS: MarketPair[] = [
+    {
+        name: 'ETH/USDC',
+        tokenA: USDC_ADDRESS,
+        tokenB: ETH_WRAPPER_ADDRESS,
+        basePrice: 2412.50,
+        decimalsA: 6,
+        decimalsB: 18
+    },
+    {
+        name: 'cETH/USDC',
+        tokenA: USDC_ADDRESS,
+        tokenB: ETH_WRAPPER_ADDRESS,
+        basePrice: 2412.50,
+        decimalsA: 6,
+        decimalsB: 18
+    }
+];
+
 export const useMarketStore = create<MarketDataState>((set, get) => ({
-    pair: 'ETH/USDC',
-    price: 2412.50,
+    pairs: INITIAL_PAIRS,
+    currentPair: INITIAL_PAIRS[0],
+    price: INITIAL_PAIRS[0].basePrice,
     change24h: 2.4,
     bids: [],
     asks: [],
     setPrice: (price) => set({ price }),
+    setPair: (pairName) => {
+        const pair = get().pairs.find(p => p.name === pairName);
+        if (pair) {
+            set({ currentPair: pair, price: pair.basePrice });
+            get().generateMockData();
+        }
+    },
     generateMockData: () => {
         // Generate initial orderbook
         const basePrice = get().price;
@@ -34,12 +74,14 @@ export const useMarketStore = create<MarketDataState>((set, get) => ({
             price: basePrice - (i * 0.5 + Math.random()),
             amount: Math.random() * 5,
             total: 0 // calculate later
-        }));
+        })).sort((a, b) => b.price - a.price);
+
         const asks = Array.from({ length: 15 }).map((_, i) => ({
             price: basePrice + (i * 0.5 + Math.random()),
             amount: Math.random() * 5,
             total: 0
-        }));
+        })).sort((a, b) => a.price - b.price);
+
         set({ bids, asks });
     }
 }));
@@ -59,12 +101,12 @@ export const useMarketData = () => {
 
             // Randomly update an ask or bid to simulate activity
             if (Math.random() > 0.5) {
-                store.generateMockData(); // Regenerate for simplicity in this demo, or update locally
+                store.generateMockData();
             }
         }, 1500);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [store.currentPair.name]);
 
     return store;
 };
