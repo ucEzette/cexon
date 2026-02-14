@@ -1,25 +1,18 @@
 'use client';
 
 import { PrivyProvider } from '@privy-io/react-auth';
-import { type Chain } from 'viem';
+import { WagmiProvider, createConfig, http } from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { tempoTestnet, RPC_URL } from '@/lib/chains';
 
-// 1. Manually define the Tempo Testnet
-export const tempoTestnet: Chain = {
-    id: 123456, // Replace with actual Tempo Testnet ID if different
-    name: 'Tempo Testnet',
-    nativeCurrency: {
-        decimals: 18,
-        name: 'Tempo',
-        symbol: 'TMP',
+const queryClient = new QueryClient();
+
+export const wagmiConfig = createConfig({
+    chains: [tempoTestnet],
+    transports: {
+        [tempoTestnet.id]: http(RPC_URL),
     },
-    rpcUrls: {
-        default: { http: ['https://rpc.tempo.xyz'] },
-        public: { http: ['https://rpc.tempo.xyz'] },
-    },
-    blockExplorers: {
-        default: { name: 'Tempo Explorer', url: 'https://explorer.tempo.xyz' },
-    },
-} as const;
+});
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     return (
@@ -41,7 +34,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 loginMethods: ['email', 'wallet', 'google', 'apple'],
             }}
         >
-            {children}
+            <WagmiProvider config={wagmiConfig}>
+                <QueryClientProvider client={queryClient}>
+                    {children}
+                </QueryClientProvider>
+            </WagmiProvider>
         </PrivyProvider>
     );
 }

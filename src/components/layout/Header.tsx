@@ -36,7 +36,7 @@ export const Header = () => {
         ? `${user.wallet.address.slice(0, 6)}...${user.wallet.address.slice(-4)}`
         : 'Connect';
 
-    const navItems: ViewType[] = ['Trading', 'Portfolio', 'Analytics', 'Stake', 'Docs'];
+    const navItems: ViewType[] = ['Trading', 'Portfolio', 'Analytics', 'Stake', 'Docs', 'Pool'];
 
     return (
         <header className="h-14 border-b border-surface-border bg-surface-dark/80 backdrop-blur-md flex items-center justify-between px-6 z-50 shrink-0 sticky top-0">
