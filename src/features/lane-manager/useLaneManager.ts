@@ -5,7 +5,7 @@ import { useToastStore } from '@/store/useToastStore';
 import { useMarketStore } from '@/features/terminal/useMarketData';
 import { useContractInteractions } from '@/hooks/useContractInteractions';
 import { keccak256, encodePacked, Hex, parseUnits } from 'viem';
-import { USDC_ADDRESS, ETH_WRAPPER_ADDRESS } from '@/lib/contracts';
+import { USDC_ADDRESS, ETH_WRAPPER_ADDRESS, LANE_MANAGER_ADDRESS } from '@/lib/contracts';
 
 export type LaneStatus = 'idle' | 'processing' | 'confirmed' | 'error';
 
@@ -21,7 +21,7 @@ interface LaneState {
     lanes: Lane[];
     isSyncing: boolean;
     syncNonces: (provider?: any) => Promise<void>;
-    processTrade: (tradeParams: { id: string; side: string; price: number; amount: number; pair?: string }, provider?: any) => Promise<number | null>;
+    processTrade: (tradeParams: { id: string; side: string; price: number; amount: number; pair?: string }, provider?: any) => Promise<{ laneId: number; amountInWei: string; priceInX18: string } | null>;
     resetLane: (id: number) => void;
 }
 
@@ -52,7 +52,7 @@ export const useLaneManager = create<LaneState>((set, get) => ({
 
     processTrade: async (tradeParams, provider) => {
         const { lanes } = get();
-        const { executeTradeOnChain } = useContractInteractions(provider);
+        const { executeTradeOnChain, ensureAllowance } = useContractInteractions(provider);
         const { addToast } = useToastStore.getState();
 
         // Smart Routing: Find the first idle lane
@@ -83,15 +83,21 @@ export const useLaneManager = create<LaneState>((set, get) => ({
             const tokenInAddr = isBuy ? currentPair.tokenA : currentPair.tokenB;
             const tokenOutAddr = isBuy ? currentPair.tokenB : currentPair.tokenA;
 
+            const priceInX18 = parseUnits(tradeParams.price.toString(), 18);
+
             // Generate order hash for on-chain verification
             const orderHash = keccak256(
                 encodePacked(
                     ['string', 'string', 'uint256', 'uint256'],
-                    [tradeParams.id, tradeParams.side, BigInt(Math.floor(tradeParams.price * 100)), BigInt(Math.floor(tradeParams.amount * 10000))]
+                    [tradeParams.id, tradeParams.side, priceInX18, amountInValue]
                 )
             ) as Hex;
 
-            // Execute on-chain
+            // 0. Ensure allowance (Auto-Approval)
+            addToast(`Verifying allowance for Lane ${laneId}...`, 'info');
+            await ensureAllowance(tokenInAddr as Hex, LANE_MANAGER_ADDRESS, amountInValue);
+
+            // 1. Execute on-chain
             addToast(`Broadcasting to Lane ${laneId} (Nonce: ${currentNonce})...`, 'info');
             const txHash = await executeTradeOnChain(
                 laneId,
@@ -123,7 +129,11 @@ export const useLaneManager = create<LaneState>((set, get) => ({
                 get().resetLane(laneId);
             }, 2000);
 
-            return laneId;
+            return {
+                laneId,
+                amountInWei: amountInValue.toString(),
+                priceInX18: priceInX18.toString()
+            };
         } catch (error: any) {
             console.error(`[LaneManager] Execution error in Lane ${laneId}:`, error);
 

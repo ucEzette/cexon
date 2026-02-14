@@ -5,6 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Command, X, Terminal as TerminalIcon, Sparkles, CornerDownLeft, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLaneManager } from '@/features/lane-manager/useLaneManager';
+import { useMarketStore } from '@/features/terminal/useMarketData';
+import { useGlobalStore, Order } from '@/store/useGlobalStore';
+import { useWallets } from '@privy-io/react-auth';
+import { useToastStore } from '@/store/useToastStore';
 
 interface CommandTerminalProps {
     isOpen: boolean;
@@ -13,9 +17,15 @@ interface CommandTerminalProps {
 
 export const CommandTerminal: React.FC<CommandTerminalProps> = ({ isOpen, onClose }) => {
     const [input, setInput] = useState('');
-    const [parsedAction, setParsedAction] = useState<{ type: string; details: string; lanes: number[] } | null>(null);
+    const [parsedAction, setParsedAction] = useState<{ type: string; details: string; lanes: number[]; amount: number; side: 'buy' | 'sell' } | null>(null);
+    const [isExecuting, setIsExecuting] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
-    const { lanes } = useLaneManager();
+
+    const { wallets } = useWallets();
+    const { processTrade } = useLaneManager();
+    const { price, currentPair } = useMarketStore();
+    const { addOrder, fillOrder } = useGlobalStore();
+    const { addToast } = useToastStore();
 
     useEffect(() => {
         if (isOpen) {
@@ -40,24 +50,92 @@ export const CommandTerminal: React.FC<CommandTerminalProps> = ({ isOpen, onClos
         const val = e.target.value;
         setInput(val);
 
-        // Simple mock parsing logic
-        if (val.toLowerCase().includes('cancel all')) {
+        const lowerVal = val.toLowerCase();
+
+        if (lowerVal.includes('cancel all')) {
             setParsedAction({
                 type: 'CANCEL',
                 details: 'Canceling 3 active orders... routing to Lanes 1, 2, and 3.',
-                lanes: [1, 2, 3]
+                lanes: [1, 2, 3],
+                amount: 0,
+                side: 'buy'
             });
-        } else if (val.toLowerCase().match(/buy \d+/i) || val.toLowerCase().match(/sell \d+/i)) {
-            const match = val.match(/(\d+)/);
-            const amount = match ? match[0] : '10';
-            const side = val.toLowerCase().includes('buy') ? 'BUY' : 'SELL';
+        } else if (lowerVal.match(/(buy|sell)\s+(\d+(\.\d+)?)/i)) {
+            const match = lowerVal.match(/(buy|sell)\s+(\d+(\.\d+)?)/i);
+            const side = match?.[1] === 'buy' ? 'buy' : 'sell';
+            const amount = parseFloat(match?.[2] || '0');
+
             setParsedAction({
                 type: 'EXECUTE',
-                details: `Smart-splitting ${amount} ETH ${side} across 4 parallel lanes.`,
-                lanes: [1, 2, 3, 4]
+                details: `Smart-splitting ${amount} ETH ${side.toUpperCase()} across 4 parallel lanes.`,
+                lanes: [1, 2, 3, 4],
+                amount,
+                side
             });
         } else {
             setParsedAction(null);
+        }
+    };
+
+    const handleConfirm = async () => {
+        if (!parsedAction || isExecuting) return;
+
+        const wallet = wallets[0];
+        if (!wallet) {
+            addToast("Wallet not connected", "error");
+            return;
+        }
+
+        setIsExecuting(true);
+        addToast("Agent initiating parallel broadcast...", "info");
+
+        try {
+            const provider = await wallet.getEthereumProvider();
+
+            if (parsedAction.type === 'EXECUTE') {
+                const splitAmount = parsedAction.amount / parsedAction.lanes.length;
+
+                // Execute in parallel across selected lanes
+                const tradePromises = parsedAction.lanes.map(async (laneId) => {
+                    const orderId = `agent-${Math.random().toString(36).substring(7)}`;
+                    const tradeParams = {
+                        id: orderId,
+                        side: parsedAction.side,
+                        amount: splitAmount,
+                        price: price, // Market price
+                    };
+
+                    const newOrder: Order = {
+                        id: orderId,
+                        pair: currentPair.name,
+                        side: tradeParams.side,
+                        price: tradeParams.price,
+                        amount: tradeParams.amount,
+                        total: splitAmount * tradeParams.price,
+                        status: 'open',
+                        timestamp: Date.now(),
+                    };
+
+                    addOrder(newOrder);
+
+                    const result = await processTrade(tradeParams, provider);
+                    if (result) {
+                        fillOrder(orderId, result.laneId, result.amountInWei, result.priceInX18);
+                    }
+                });
+
+                await Promise.all(tradePromises);
+                addToast("Agent broadcast complete.", "success");
+                onClose();
+            } else if (parsedAction.type === 'CANCEL') {
+                addToast("Batch cancellation not fully implemented on-chain yet.", "warning");
+                onClose();
+            }
+        } catch (err: any) {
+            console.error(err);
+            addToast(`Broadcast failed: ${err.message}`, "error");
+        } finally {
+            setIsExecuting(false);
         }
     };
 
@@ -86,6 +164,9 @@ export const CommandTerminal: React.FC<CommandTerminalProps> = ({ isOpen, onClos
                                 type="text"
                                 value={input}
                                 onChange={handleInputChange}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleConfirm();
+                                }}
                                 placeholder="Enter trading intent (e.g., 'Buy 10 ETH' or 'Cancel all')..."
                                 className="flex-1 bg-transparent border-none outline-none text-white font-mono text-lg placeholder:text-slate-600 focus:ring-0"
                             />
@@ -142,9 +223,18 @@ export const CommandTerminal: React.FC<CommandTerminalProps> = ({ isOpen, onClos
                                     </div>
 
                                     <div className="pt-2 flex justify-end">
-                                        <button className="flex items-center gap-2 px-4 py-2 rounded bg-[#00F0FF] text-black font-bold text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all">
-                                            Confirm Broadcast
-                                            <CornerDownLeft className="w-3.5 h-3.5" />
+                                        <button
+                                            onClick={handleConfirm}
+                                            disabled={isExecuting}
+                                            className={cn(
+                                                "flex items-center gap-2 px-4 py-2 rounded font-bold text-xs uppercase tracking-widest transition-all active:scale-[0.98]",
+                                                isExecuting
+                                                    ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                                                    : "bg-[#00F0FF] text-black hover:brightness-110"
+                                            )}
+                                        >
+                                            {isExecuting ? 'Broadcasting...' : 'Confirm Broadcast'}
+                                            {!isExecuting && <CornerDownLeft className="w-3.5 h-3.5" />}
                                         </button>
                                     </div>
                                 </motion.div>

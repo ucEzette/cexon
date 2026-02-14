@@ -9,8 +9,12 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 import { useNavigationStore, ViewType } from '@/store/useNavigationStore';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { CommandTerminal } from '@/features/terminal/CommandTerminal';
+import { useContractInteractions } from '@/hooks/useContractInteractions';
+import { USDC_ADDRESS, ETH_WRAPPER_ADDRESS } from '@/lib/contracts';
+import { useToastStore } from '@/store/useToastStore';
+import { parseUnits } from 'viem';
 
 export const Header = () => {
     const { login, authenticated, user, logout } = usePrivy();
@@ -20,6 +24,9 @@ export const Header = () => {
     const [isPasskeyOpen, setIsPasskeyOpen] = useState(false);
     const [isGasDropdownOpen, setIsGasDropdownOpen] = useState(false);
     const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+    const { wallets } = useWallets();
+    const { mintTokensOnChain } = useContractInteractions(wallets?.[0] ? undefined : null);
+    const { addToast } = useToastStore();
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -155,14 +162,31 @@ export const Header = () => {
                                         <span className="text-white font-bold">10,000 USDC</span>
                                     </div>
                                     <button
-                                        onClick={() => {
-                                            mintDemoTokens();
+                                        onClick={async () => {
+                                            const wallet = wallets[0];
+                                            if (!wallet) return;
+                                            try {
+                                                const provider = await wallet.getEthereumProvider();
+                                                const { mintTokensOnChain } = useContractInteractions(provider);
+
+                                                addToast("Minting 10,000 cUSDC on-chain...", "info");
+                                                await mintTokensOnChain(USDC_ADDRESS, parseUnits("10000", 6));
+
+                                                addToast("Minting 10 cETH on-chain...", "info");
+                                                await mintTokensOnChain(ETH_WRAPPER_ADDRESS, parseUnits("10", 18));
+
+                                                addToast("On-chain assets provisioned successfully!", "success");
+                                                mintDemoTokens(); // Also update UI mock balance
+                                            } catch (err) {
+                                                console.error(err);
+                                                addToast("On-chain minting failed. Check RPC connection.", "error");
+                                            }
                                             setIsGasDropdownOpen(false);
                                         }}
                                         className="w-full py-2 rounded border border-primary/50 text-primary hover:bg-primary hover:text-black transition-all flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest bg-primary/10"
                                     >
                                         <Sparkles className="w-3.5 h-3.5" />
-                                        Mint Test Tokens
+                                        Provision On-Chain Assets
                                     </button>
                                 </div>
 

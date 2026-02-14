@@ -39,8 +39,16 @@ contract LaneManager {
     );
 
     event PoolInitialized(address tokenA, address tokenB, uint256 price);
-    event LiquidityAdded(address indexed user, address indexed token, uint256 amount);
-    event LiquidityRemoved(address indexed user, address indexed token, uint256 amount);
+    event LiquidityAdded(
+        address indexed user,
+        address indexed token,
+        uint256 amount
+    );
+    event LiquidityRemoved(
+        address indexed user,
+        address indexed token,
+        uint256 amount
+    );
 
     error InvalidLane();
     error InvalidNonce();
@@ -50,10 +58,17 @@ contract LaneManager {
     constructor() {}
 
     function getPoolId(address a, address b) public pure returns (bytes32) {
-        return a < b ? keccak256(abi.encodePacked(a, b)) : keccak256(abi.encodePacked(b, a));
+        return
+            a < b
+                ? keccak256(abi.encodePacked(a, b))
+                : keccak256(abi.encodePacked(b, a));
     }
 
-    function initializePool(address tokenA, address tokenB, uint256 initialPrice) external {
+    function initializePool(
+        address tokenA,
+        address tokenB,
+        uint256 initialPrice
+    ) external {
         bytes32 poolId = getPoolId(tokenA, tokenB);
         pools[poolId] = Pool({
             tokenA: tokenA < tokenB ? tokenA : tokenB,
@@ -73,7 +88,8 @@ contract LaneManager {
     }
 
     function removeLiquidity(address token, uint256 amount) external {
-        if (userLiquidity[msg.sender][token] < amount) revert InsufficientLiquidity();
+        if (userLiquidity[msg.sender][token] < amount)
+            revert InsufficientLiquidity();
         userLiquidity[msg.sender][token] -= amount;
         ILaneERC20(token).transfer(msg.sender, amount);
         emit LiquidityRemoved(msg.sender, token, amount);
@@ -98,17 +114,21 @@ contract LaneManager {
         // 1. Pull tokens
         ILaneERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
 
-        // 2. Dynamic price logic
+        // 2. Dynamic price logic (USDC: 6 dec, ETH: 18 dec)
         uint256 amountOut;
-        // Basic decimals handling: USDC (6), ETH (18)
-        // If tokenA < tokenB, let's assume tokenA is USDC and tokenB is ETH
-        // pool.price is price of tokenA in tokenB (e.g. 1 USDC = 0.000416 ETH)
-        // Scaled by 1e18
-        
+
+        // pool.price is price of tokenB (ETH) in tokenA (USDC), scaled by 1e18
+        // Example: 2412.5 * 1e18
         if (tokenIn == pool.tokenA) {
-            amountOut = (amountIn * pool.price) / 1e18;
+            // USDC -> ETH
+            // amountOut (18 dec) = amountIn (6 dec) * 1e18 * 1e18 / pool.price / 1e6
+            // amountOut = amountIn * 1e30 / pool.price
+            amountOut = (amountIn * 1e30) / pool.price;
         } else {
-            amountOut = (amountIn * 1e18) / pool.price;
+            // ETH -> USDC
+            // amountOut (6 dec) = amountIn (18 dec) * pool.price / 1e18 / 1e12
+            // amountOut = amountIn * pool.price / 1e30
+            amountOut = (amountIn * pool.price) / 1e30;
         }
 
         if (amountOut < minAmountOut) revert InsufficientLiquidity();
