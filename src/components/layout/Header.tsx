@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useGlobalStore } from '@/store/useGlobalStore';
 import { useSettingsStore } from '@/features/settings/useSettingsStore';
 import { PasskeyManager } from '@/features/passkey/PasskeyManager';
-import { ChevronDown, Cpu, FlaskConical, Sparkles, Coins, ShieldAlert, Command } from 'lucide-react';
+import { ChevronDown, Cpu, FlaskConical, Sparkles, Coins, ShieldAlert, Command, Menu, X as CloseIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -15,6 +15,7 @@ import { useContractInteractions } from '@/hooks/useContractInteractions';
 import { USDC_ADDRESS, ETH_WRAPPER_ADDRESS } from '@/lib/contracts';
 import { useToastStore } from '@/store/useToastStore';
 import { parseUnits } from 'viem';
+import { AnimatePresence } from 'framer-motion';
 
 export const Header = () => {
     const { login, authenticated, user, logout } = usePrivy();
@@ -24,6 +25,7 @@ export const Header = () => {
     const [isPasskeyOpen, setIsPasskeyOpen] = useState(false);
     const [isGasDropdownOpen, setIsGasDropdownOpen] = useState(false);
     const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { wallets } = useWallets();
     const { mintTokensOnChain } = useContractInteractions(wallets?.[0] ? undefined : null);
     const { addToast } = useToastStore();
@@ -46,9 +48,16 @@ export const Header = () => {
     const navItems: ViewType[] = ['Trading', 'Portfolio', 'Analytics', 'Stake', 'Docs', 'Pool'];
 
     return (
-        <header className="h-14 border-b border-surface-border bg-surface-dark/80 backdrop-blur-md flex items-center justify-between px-6 z-50 shrink-0 sticky top-0">
-            <div className="flex items-center gap-8">
-                <div className="flex items-center gap-3">
+        <header className="h-14 border-b border-surface-border bg-surface-dark/80 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 z-[60] shrink-0 sticky top-0">
+            <div className="flex items-center gap-4 lg:gap-8">
+                <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="lg:hidden p-1 text-slate-400 hover:text-white transition-colors"
+                >
+                    {isMobileMenuOpen ? <CloseIcon className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
+
+                <div className="flex items-center gap-3 shrink-0">
                     <div className="h-9 flex items-center">
                         <img
                             src="/cexonLOGO (1).png"
@@ -82,15 +91,55 @@ export const Header = () => {
                 </nav>
             </div>
 
-            <div className="flex items-center gap-6 text-xs font-mono">
+            {/* Mobile Navigation Drawer */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] lg:hidden"
+                        />
+                        <motion.div
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            className="fixed top-14 left-0 bottom-0 w-64 bg-surface-dark border-r border-surface-border z-[56] lg:hidden p-6 flex flex-col gap-8"
+                        >
+                            <nav className="flex flex-col gap-6 text-xs font-mono font-bold uppercase tracking-[0.2em] text-slate-500">
+                                {navItems.map((item) => (
+                                    <button
+                                        key={item}
+                                        onClick={() => {
+                                            setActiveView(item);
+                                            setIsMobileMenuOpen(false);
+                                        }}
+                                        className={cn(
+                                            "flex items-center justify-between transition-colors",
+                                            activeView === item ? "text-primary shadow-glow-sm" : "hover:text-white"
+                                        )}
+                                    >
+                                        {item}
+                                        {activeView === item && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                                    </button>
+                                ))}
+                            </nav>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
+            <div className="flex items-center gap-3 lg:gap-6 text-xs font-mono">
                 {/* Command Terminal Trigger */}
                 <button
                     onClick={() => setIsTerminalOpen(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded bg-white/5 border border-white/10 text-slate-400 hover:text-primary hover:border-primary/50 transition-all group"
+                    className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded bg-white/5 border border-white/10 text-slate-400 hover:text-primary hover:border-primary/50 transition-all group shrink-0"
                 >
                     <Command className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">TERMINAL</span>
-                    <div className="flex items-center gap-1 px-1 py-0.5 rounded bg-black/40 border border-white/5 text-[8px] opacity-60 group-hover:opacity-100">
+                    <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">TERMINAL</span>
+                    <div className="hidden sm:flex items-center gap-1 px-1 py-0.5 rounded bg-black/40 border border-white/5 text-[8px] opacity-60 group-hover:opacity-100">
                         <span>⌘</span>
                         <span>K</span>
                     </div>
@@ -113,10 +162,10 @@ export const Header = () => {
                             authenticated ? "bg-green-500" : "bg-slate-500"
                         )}></span>
                     </span>
-                    <span className="text-slate-400 group-hover:text-slate-300 uppercase tracking-tighter text-[9px] font-bold">
+                    <span className="text-slate-400 group-hover:text-slate-300 uppercase tracking-tighter text-[9px] font-bold hidden sm:inline">
                         {authenticated ? 'WALLET' : 'AUTH'}
                     </span>
-                    <span className="text-white font-bold tracking-tight">
+                    <span className="text-white font-bold tracking-tight text-[10px] sm:text-xs">
                         {truncatedAddress}
                     </span>
                 </div>
@@ -130,7 +179,7 @@ export const Header = () => {
                             isGasDropdownOpen ? "border-primary/50" : "border-surface-border/50 hover:border-primary/30"
                         )}
                     >
-                        <span className="text-slate-400">GAS:</span>
+                        <span className="text-slate-400 hidden sm:inline">GAS:</span>
                         <span className="text-primary font-bold">{isSponsored ? 'FREE' : gasToken}</span>
                         <ChevronDown className={cn("w-3.5 h-3.5 text-slate-500 transition-transform", isGasDropdownOpen && "rotate-180")} />
                     </div>
@@ -223,7 +272,7 @@ export const Header = () => {
                         )}
                     >
                         <ShieldAlert className="w-3.5 h-3.5" />
-                        Kill Switch
+                        <span className="hidden sm:inline">Kill Switch</span>
                     </button>
                     {isKillSwitchActive && (
                         <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping" />

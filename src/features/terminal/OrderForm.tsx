@@ -108,7 +108,7 @@ export const OrderForm = () => {
     };
 
     return (
-        <div className="p-5 flex flex-col gap-5 flex-1 overflow-y-auto custom-scrollbar">
+        <div className="p-4 lg:p-5 flex flex-col gap-4 lg:gap-5 flex-1 overflow-y-auto custom-scrollbar">
             {/* Order Type Switcher */}
             <div className="flex border-b border-surface-border bg-black/20 mb-2">
                 {(['limit', 'market', 'stop'] as const).map((type) => (
@@ -211,8 +211,8 @@ export const OrderForm = () => {
             {/* Inputs */}
             <div className="space-y-4">
                 <div>
-                    <div className="flex justify-between mb-1.5 text-[11px]">
-                        <label className="text-slate-400 font-medium font-display">Price (USDC)</label>
+                    <div className="flex justify-between mb-1 text-[11px]">
+                        <label className="text-slate-400 font-medium font-display uppercase tracking-wider">Price (USDC)</label>
                         <span className="text-primary cursor-pointer font-mono hover:underline">Last: {price.toFixed(2)}</span>
                     </div>
                     <div className="relative group">
@@ -227,8 +227,8 @@ export const OrderForm = () => {
                 </div>
 
                 <div>
-                    <div className="flex justify-between mb-1.5 text-[11px]">
-                        <label className="text-slate-400 font-medium font-display">Amount ({currentPair.name.split('/')[0]})</label>
+                    <div className="flex justify-between mb-1 text-[11px]">
+                        <label className="text-slate-400 font-medium font-display uppercase tracking-wider">Amount ({currentPair.name.split('/')[0]})</label>
                         <span className="text-slate-500 font-mono">Max: {side === 'buy' ? (userBalance.USDC / price).toFixed(6) : userBalance.ETH.toFixed(6)}</span>
                     </div>
                     <div className="relative group">

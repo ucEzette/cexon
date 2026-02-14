@@ -23,6 +23,7 @@ export default function Home() {
     const { price, pairs, currentPair, setPair } = useMarketData();
     const { activeView } = useNavigationStore();
     const [activeTab, setActiveTab] = useState<'chart' | 'logs'>('chart');
+    const [mobileTab, setMobileTab] = useState<'trade' | 'chart' | 'book' | 'history'>('chart');
 
     const renderContent = () => {
         switch (activeView) {
@@ -41,9 +42,30 @@ export default function Home() {
             case 'Trading':
             default:
                 return (
-                    <div className="flex-1 grid grid-cols-12 divide-x divide-surface-border overflow-hidden h-full">
+                    <div className="flex-1 flex flex-col lg:grid lg:grid-cols-12 lg:divide-x divide-surface-border overflow-hidden h-full">
+                        {/* Mobile Tab Switcher */}
+                        <div className="lg:hidden flex border-b border-surface-border bg-surface-dark shrink-0">
+                            {(['trade', 'chart', 'book', 'history'] as const).map((tab) => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setMobileTab(tab)}
+                                    className={cn(
+                                        "flex-1 py-3 text-[10px] font-bold uppercase tracking-widest transition-all",
+                                        mobileTab === tab
+                                            ? "text-primary border-b border-primary bg-primary/5 shadow-glow-sm"
+                                            : "text-slate-500 hover:text-white"
+                                    )}
+                                >
+                                    {tab}
+                                </button>
+                            ))}
+                        </div>
+
                         {/* Left Column: Market & Order Form */}
-                        <aside className="col-span-12 lg:col-span-3 bg-surface-dark flex flex-col h-full border-r border-surface-border max-w-[400px] overflow-hidden">
+                        <aside className={cn(
+                            "col-span-12 lg:col-span-3 bg-surface-dark flex flex-col h-full border-b lg:border-b-0 lg:border-r border-surface-border lg:max-w-[400px] overflow-hidden",
+                            mobileTab !== 'trade' && "hidden lg:flex"
+                        )}>
                             <div className="p-4 border-b border-surface-border bg-surface-dark/50 shrink-0">
                                 <div className="flex items-center justify-between mb-1">
                                     <div className="flex items-center gap-2 text-white font-bold text-lg font-mono group cursor-pointer relative">
@@ -85,12 +107,15 @@ export default function Home() {
                         </aside>
 
                         {/* Center Column: Charts & Parallel Execution Visualizer */}
-                        <main className="col-span-12 lg:col-span-6 flex flex-col bg-background-dark relative border-r border-surface-border overflow-hidden h-full">
+                        <main className={cn(
+                            "col-span-12 lg:col-span-6 flex flex-col bg-background-dark relative lg:border-r border-surface-border overflow-hidden h-full",
+                            (mobileTab !== 'chart' && mobileTab !== 'history') && "hidden lg:flex"
+                        )}>
                             <SessionStatus />
 
                             {/* Toolbar / Tabs */}
                             <div className="h-10 border-b border-surface-border flex items-center px-4 justify-between bg-surface-dark/50 z-10 shrink-0">
-                                <div className="flex gap-4 text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
+                                <div className="hidden lg:flex gap-4 text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
                                     <span
                                         onClick={() => setActiveTab('chart')}
                                         className={cn("cursor-pointer py-2 px-1 transition-all", activeTab === 'chart' ? "text-primary border-b border-primary shadow-glow-sm" : "hover:text-white")}
@@ -108,7 +133,7 @@ export default function Home() {
 
                             {/* Performance View Area */}
                             <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
-                                {activeTab === 'chart' ? (
+                                {(mobileTab === 'chart' || (activeTab === 'chart' && mobileTab === 'history')) ? (
                                     <div className="flex-1 flex flex-col bg-grid-slate-900/[0.05] relative overflow-hidden">
                                         <div className="absolute top-12 left-4 z-10 pointer-events-none">
                                             <div className="text-[10px] text-primary/60 font-mono mb-1">REAL-TIME DATA FEED</div>
@@ -137,7 +162,9 @@ export default function Home() {
                         </main>
 
                         {/* Right Column: Order Book & Flow */}
-                        <OrderBook />
+                        <div className={cn("col-span-3 h-full overflow-hidden shrink-0", mobileTab !== 'book' && "hidden lg:block")}>
+                            <OrderBook />
+                        </div>
                     </div>
                 );
         }
