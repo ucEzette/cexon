@@ -2,8 +2,10 @@
 
 import { create } from 'zustand';
 import { useToastStore } from '@/store/useToastStore';
+import { useMarketStore } from '@/features/terminal/useMarketData';
 import { useContractInteractions } from '@/hooks/useContractInteractions';
-import { keccak256, encodePacked, Hex } from 'viem';
+import { keccak256, encodePacked, Hex, parseUnits } from 'viem';
+import { USDC_ADDRESS, ETH_WRAPPER_ADDRESS } from '@/lib/contracts';
 
 export type LaneStatus = 'idle' | 'processing' | 'confirmed' | 'error';
 
@@ -19,7 +21,7 @@ interface LaneState {
     lanes: Lane[];
     isSyncing: boolean;
     syncNonces: (provider?: any) => Promise<void>;
-    processTrade: (tradeParams: { id: string; side: string; price: number; amount: number }, provider?: any) => Promise<number | null>;
+    processTrade: (tradeParams: { id: string; side: string; price: number; amount: number; pair?: string }, provider?: any) => Promise<number | null>;
     resetLane: (id: number) => void;
 }
 
@@ -61,6 +63,7 @@ export const useLaneManager = create<LaneState>((set, get) => ({
             return null;
         }
 
+        const { currentPair } = useMarketStore.getState();
         const laneId = availableLane.id;
         const currentNonce = availableLane.nonce;
 
@@ -72,6 +75,14 @@ export const useLaneManager = create<LaneState>((set, get) => ({
         }));
 
         try {
+            const isBuy = tradeParams.side === 'buy';
+            const decimalsIn = isBuy ? currentPair.decimalsA : currentPair.decimalsB;
+            const decimalsOut = isBuy ? currentPair.decimalsB : currentPair.decimalsA;
+
+            const amountInValue = parseUnits(tradeParams.amount.toString(), decimalsIn);
+            const tokenInAddr = isBuy ? currentPair.tokenA : currentPair.tokenB;
+            const tokenOutAddr = isBuy ? currentPair.tokenB : currentPair.tokenA;
+
             // Generate order hash for on-chain verification
             const orderHash = keccak256(
                 encodePacked(
@@ -82,7 +93,15 @@ export const useLaneManager = create<LaneState>((set, get) => ({
 
             // Execute on-chain
             addToast(`Broadcasting to Lane ${laneId} (Nonce: ${currentNonce})...`, 'info');
-            const txHash = await executeTradeOnChain(laneId, currentNonce, orderHash);
+            const txHash = await executeTradeOnChain(
+                laneId,
+                currentNonce,
+                orderHash,
+                tokenInAddr as Hex,
+                tokenOutAddr as Hex,
+                amountInValue,
+                0n
+            );
 
             // Transition to confirmed
             set((state) => ({
@@ -108,13 +127,21 @@ export const useLaneManager = create<LaneState>((set, get) => ({
         } catch (error: any) {
             console.error(`[LaneManager] Execution error in Lane ${laneId}:`, error);
 
-            const errorMessage = error.message || "";
-            if (errorMessage.includes("insufficient funds") || errorMessage.includes("exceeds the balance")) {
+            // Extract nested RPC or Contract error message
+            const rawMessage = error.message || "";
+            const nestedReason = error.cause?.message || error.details || "";
+            const fullError = `${rawMessage} ${nestedReason}`.toLowerCase();
+
+            if (fullError.includes("unauthorized") || fullError.includes("authentication required")) {
+                addToast(`Lane ${laneId} Failed: RPC Unauthorized (Check Credentials)`, 'error');
+            } else if (fullError.includes("insufficient funds") || fullError.includes("exceeds the balance")) {
                 addToast(`Lane ${laneId} Failed: Insufficient Gas Funds`, 'error');
-            } else if (errorMessage.includes("InvalidNonce") || errorMessage.includes("Sequence Break")) {
+            } else if (fullError.includes("invalidnonce") || fullError.includes("sequence break")) {
                 addToast(`Execution Refused in Lane ${laneId}: Sequence Break`, 'error');
             } else {
-                addToast(`Execution Refused in Lane ${laneId}: Dynamic Fault`, 'error');
+                // Surface first line of the actual fault
+                const faultReason = (nestedReason || rawMessage).split('\n')[0].slice(0, 50);
+                addToast(`Execution Refused in Lane ${laneId}: ${faultReason || 'Dynamic Fault'}`, 'error');
             }
 
             set((state) => ({
