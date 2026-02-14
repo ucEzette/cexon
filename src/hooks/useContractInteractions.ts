@@ -1,20 +1,21 @@
-import { createPublicClient, createWalletClient, custom, Hash, Hex, http } from 'viem';
+import { createWalletClient, custom, Hash, Hex, Address } from 'viem';
 import { LANE_MANAGER_ADDRESS, LANE_MANAGER_ABI, USDC_ADDRESS } from '@/lib/contracts';
-import { tempoTestnet } from '@/components/Providers';
-
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc.tempo.xyz';
-
-const publicClient = createPublicClient({
-    chain: tempoTestnet,
-    transport: http(RPC_URL)
-});
+import { tempoTestnet, publicClient } from '@/lib/chains';
 
 export const useContractInteractions = (provider?: any) => {
-    const executeTradeOnChain = async (laneId: number, nonce: number, orderHash: Hex): Promise<Hash> => {
+    const executeTradeOnChain = async (
+        laneId: number,
+        nonce: number,
+        orderHash: Hex,
+        tokenIn: Address,
+        tokenOut: Address,
+        amountIn: bigint,
+        minAmountOut: bigint
+    ): Promise<Hash> => {
         if (!provider) throw new Error("Wallet not connected");
 
         try {
-            console.log(`[Contract] Executing trade in Lane ${laneId} with Nonce ${nonce} using Custom Type 0x76...`);
+            console.log(`[Contract] Executing AMM trade in Lane ${laneId} with Nonce ${nonce}...`);
 
             const walletClient = createWalletClient({
                 chain: tempoTestnet,
@@ -27,7 +28,7 @@ export const useContractInteractions = (provider?: any) => {
                 address: LANE_MANAGER_ADDRESS,
                 abi: LANE_MANAGER_ABI,
                 functionName: 'executeTrade',
-                args: [BigInt(laneId), BigInt(nonce), orderHash],
+                args: [BigInt(laneId), BigInt(nonce), orderHash, tokenIn, tokenOut, amountIn, minAmountOut],
                 account,
             });
 

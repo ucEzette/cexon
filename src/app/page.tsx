@@ -10,16 +10,17 @@ import { SessionStatus } from "@/features/terminal/SessionStatus";
 import { useMarketStore } from '@/features/terminal/useMarketData';
 import { TradeHistory } from '@/features/terminal/TradeHistory';
 import { cn } from '@/lib/utils';
-import { TrendingUp, BarChart2 } from 'lucide-react';
+import { TrendingUp, BarChart2, ChevronDown } from 'lucide-react';
 import { useNavigationStore } from '@/store/useNavigationStore';
 import { PortfolioView } from '@/features/portfolio/PortfolioView';
 import { AnalyticsView } from '@/features/analytics/AnalyticsView';
 import { StakeView } from '@/features/stake/StakeView';
 import { SettingsView } from '@/features/profile/SettingsView';
 import { DocsView } from '@/features/docs/DocsView';
+import { PoolView } from '@/features/liquidity/PoolView';
 
 export default function Home() {
-    const { price } = useMarketStore();
+    const { price, pairs, currentPair, setPair } = useMarketStore();
     const { activeView } = useNavigationStore();
     const [activeTab, setActiveTab] = useState<'chart' | 'logs'>('chart');
 
@@ -35,6 +36,8 @@ export default function Home() {
                 return <SettingsView />;
             case 'Docs':
                 return <DocsView />;
+            case 'Pool':
+                return <PoolView />;
             case 'Trading':
             default:
                 return (
@@ -43,11 +46,30 @@ export default function Home() {
                         <aside className="col-span-12 lg:col-span-3 bg-surface-dark flex flex-col h-full border-r border-surface-border max-w-[400px] overflow-hidden">
                             <div className="p-4 border-b border-surface-border bg-surface-dark/50 shrink-0">
                                 <div className="flex items-center justify-between mb-1">
-                                    <div className="flex items-center gap-2 text-white font-bold text-lg font-mono">
+                                    <div className="flex items-center gap-2 text-white font-bold text-lg font-mono group cursor-pointer relative">
                                         <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
                                             <BarChart2 className="w-4 h-4 text-primary" />
                                         </div>
-                                        ETH / USDC
+                                        <div className="flex items-center gap-1 group-hover:text-primary transition-colors">
+                                            {currentPair.name}
+                                            <ChevronDown className="w-4 h-4 opacity-50" />
+                                        </div>
+
+                                        {/* Simple Pair Selector Dropdown on Hover/Click */}
+                                        <div className="absolute top-full left-0 mt-2 bg-surface-dark border border-surface-border rounded shadow-2xl hidden group-hover:block z-50 min-w-[150px]">
+                                            {pairs.map(p => (
+                                                <div
+                                                    key={p.name}
+                                                    onClick={() => setPair(p.name)}
+                                                    className={cn(
+                                                        "px-4 py-2 hover:bg-primary hover:text-black cursor-pointer text-xs font-bold uppercase tracking-widest transition-all",
+                                                        currentPair.name === p.name ? "text-primary" : "text-slate-400"
+                                                    )}
+                                                >
+                                                    {p.name}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                     <span className="text-green-500 text-sm font-mono flex items-center gap-1 font-bold">
                                         +2.4% <TrendingUp className="w-3 h-3" />

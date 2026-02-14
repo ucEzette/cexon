@@ -13,6 +13,10 @@ build/
 contracts/out/
 contracts/cache/
 contracts/broadcast/
+contracts/lib/
+contracts/*.log
+contracts/src/*_Flattened.sol
+contracts/src/Minimal*.sol
 
 # env files
 .env
