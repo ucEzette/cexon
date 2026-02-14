@@ -1,5 +1,5 @@
 import { createWalletClient, custom, Hash, Hex, Address } from 'viem';
-import { LANE_MANAGER_ADDRESS, LANE_MANAGER_ABI, USDC_ADDRESS } from '@/lib/contracts';
+import { LANE_MANAGER_ADDRESS, LANE_MANAGER_ABI, USDC_ADDRESS, ERC20_ABI, ETH_WRAPPER_ADDRESS } from '@/lib/contracts';
 import { tempoTestnet, publicClient } from '@/lib/chains';
 
 export const useContractInteractions = (provider?: any) => {
@@ -69,8 +69,55 @@ export const useContractInteractions = (provider?: any) => {
         }
     };
 
+    const mintTokensOnChain = async (token: Address, amount: bigint): Promise<Hash> => {
+        if (!provider) throw new Error("Wallet not connected");
+        const walletClient = createWalletClient({ chain: tempoTestnet, transport: custom(provider) });
+        const [account] = await walletClient.getAddresses();
+
+        const { request } = await publicClient.simulateContract({
+            address: token,
+            abi: ERC20_ABI,
+            functionName: 'mint',
+            args: [account, amount],
+            account,
+        });
+
+        const hash = await walletClient.writeContract(request);
+        await publicClient.waitForTransactionReceipt({ hash });
+        return hash;
+    };
+
+    const ensureAllowance = async (token: Address, spender: Address, amount: bigint): Promise<void> => {
+        if (!provider) throw new Error("Wallet not connected");
+        const walletClient = createWalletClient({ chain: tempoTestnet, transport: custom(provider) });
+        const [account] = await walletClient.getAddresses();
+
+        const currentAllowance = await publicClient.readContract({
+            address: token,
+            abi: ERC20_ABI,
+            functionName: 'allowance',
+            args: [account, spender],
+        }) as bigint;
+
+        if (currentAllowance < amount) {
+            console.log(`[Contract] Increasing allowance for ${token} to ${spender}...`);
+            const { request } = await publicClient.simulateContract({
+                address: token,
+                abi: ERC20_ABI,
+                functionName: 'approve',
+                args: [spender, amount * 10n], // Approve 10x for convenience in testing
+                account,
+            });
+            const hash = await walletClient.writeContract(request);
+            await publicClient.waitForTransactionReceipt({ hash });
+            console.log(`[Contract] Allowance updated.`);
+        }
+    };
+
     return {
         executeTradeOnChain,
-        getLaneNoncesOnChain
+        getLaneNoncesOnChain,
+        mintTokensOnChain,
+        ensureAllowance
     };
 };

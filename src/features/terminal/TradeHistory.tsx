@@ -72,8 +72,12 @@ export const TradeHistory = () => {
                                     )}>
                                         {trade.side}
                                     </td>
-                                    <td className="px-4 py-2.5 text-right text-slate-300 font-bold">{trade.price.toFixed(2)}</td>
-                                    <td className="px-4 py-2.5 text-right text-slate-300">{trade.amount.toFixed(2)}</td>
+                                    <td className="px-4 py-2.5 text-right text-slate-300 font-bold" title={trade.priceInX18 ? `X18: ${trade.priceInX18}` : undefined}>
+                                        {trade.price.toFixed(2)}
+                                    </td>
+                                    <td className="px-4 py-2.5 text-right text-slate-300" title={trade.amountInWei ? `Wei: ${trade.amountInWei}` : undefined}>
+                                        {trade.amount.toFixed(6)}
+                                    </td>
                                     <td className="px-4 py-2.5 text-center">
                                         {trade.laneId ? (
                                             <span className={cn(

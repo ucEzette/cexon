@@ -13,6 +13,8 @@ export interface Order {
     status: 'open' | 'filled' | 'cancelled';
     timestamp: number;
     laneId?: number;
+    amountInWei?: string;
+    priceInX18?: string;
 }
 
 interface GlobalState {
@@ -27,7 +29,7 @@ interface GlobalState {
 
     // Actions
     addOrder: (order: Order) => void;
-    fillOrder: (orderId: string, laneId: number) => void;
+    fillOrder: (orderId: string, laneId: number, amountInWei?: string, priceInX18?: string) => void;
     mintDemoTokens: () => void;
     toggleKillSwitch: () => void;
     updateBalance: (token: 'USDC' | 'ETH' | 'TEMPO', amount: number) => void;
@@ -54,12 +56,18 @@ export const useGlobalStore = create<GlobalState>()(
                 activeOrders: [order, ...state.activeOrders]
             })),
 
-            fillOrder: (orderId, laneId) => set((state) => {
+            fillOrder: (orderId, laneId, amountInWei, priceInX18) => set((state) => {
                 const orderIndex = state.activeOrders.findIndex(o => o.id === orderId);
                 if (orderIndex === -1) return state;
 
                 const order = state.activeOrders[orderIndex];
-                const filledOrder: Order = { ...order, status: 'filled', laneId };
+                const filledOrder: Order = {
+                    ...order,
+                    status: 'filled',
+                    laneId,
+                    amountInWei,
+                    priceInX18
+                };
 
                 return {
                     activeOrders: state.activeOrders.filter(o => o.id !== orderId),

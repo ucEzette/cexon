@@ -1,6 +1,6 @@
-export const LANE_MANAGER_ADDRESS = "0xF5Cd4eb6fCB99AceD9Ef7184E865caE99f5DcFAf" as const;
-export const USDC_ADDRESS = "0xa224CC2E49d4cd39d1616665B33e9651a1ea3a17" as const;
-export const ETH_WRAPPER_ADDRESS = "0x96865670E82B1694B3A05e86223fA9CaAc816D59" as const;
+export const LANE_MANAGER_ADDRESS = "0x7fafa41d52efa6ad03cb51a877602f6cb0cc5431" as const;
+export const USDC_ADDRESS = "0x17a11d214eba12457422a2949b4d70ec06744ca7" as const;
+export const ETH_WRAPPER_ADDRESS = "0x5c60b4b4d7f51806c59044d3b24e78862b99b0c7" as const;
 
 export const LANE_MANAGER_ABI = [
     {
@@ -88,7 +88,11 @@ export const LANE_MANAGER_ABI = [
         "inputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
         "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
         "stateMutability": "view"
-    }
+    },
+    { "type": "error", "name": "InvalidLane", "inputs": [] },
+    { "type": "error", "name": "InvalidNonce", "inputs": [] },
+    { "type": "error", "name": "InsufficientLiquidity", "inputs": [] },
+    { "type": "error", "name": "PoolNotFound", "inputs": [] }
 ] as const;
 
 export const ERC20_ABI = [
