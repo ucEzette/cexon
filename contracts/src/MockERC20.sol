@@ -54,6 +54,10 @@ contract MockERC20 {
         return true;
     }
 
+    function mint(address to, uint256 value) public {
+        _mint(to, value);
+    }
+
     function _mint(address to, uint256 value) internal {
         totalSupply += value;
         balanceOf[to] += value;

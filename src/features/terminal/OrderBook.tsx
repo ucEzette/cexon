@@ -53,7 +53,7 @@ export const OrderBook = () => {
                 <div className="py-2.5 px-3 my-1 bg-surface-border/20 border-y border-surface-border flex justify-between items-center">
                     <span className="text-primary font-bold text-lg">{price.toFixed(2)}</span>
                     <span className="text-[10px] text-slate-500 flex items-center gap-1 font-mono uppercase">
-                        Spread: {(asks[0]?.price - bids[0]?.price).toFixed(2)}
+                        Spread: {asks.length > 0 && bids.length > 0 ? (asks[0].price - bids[0].price).toFixed(2) : "0.00"}
                     </span>
                 </div>
 

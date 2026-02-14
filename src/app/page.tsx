@@ -7,7 +7,7 @@ import { OrderBook } from "@/features/terminal/OrderBook";
 import { ChartWidget } from "@/features/terminal/ChartWidget";
 import { LaneStatus } from "@/features/lane-manager/LaneStatus";
 import { SessionStatus } from "@/features/terminal/SessionStatus";
-import { useMarketStore } from '@/features/terminal/useMarketData';
+import { useMarketData } from '@/features/terminal/useMarketData';
 import { TradeHistory } from '@/features/terminal/TradeHistory';
 import { cn } from '@/lib/utils';
 import { TrendingUp, BarChart2, ChevronDown } from 'lucide-react';
@@ -20,7 +20,7 @@ import { DocsView } from '@/features/docs/DocsView';
 import { PoolView } from '@/features/liquidity/PoolView';
 
 export default function Home() {
-    const { price, pairs, currentPair, setPair } = useMarketStore();
+    const { price, pairs, currentPair, setPair } = useMarketData();
     const { activeView } = useNavigationStore();
     const [activeTab, setActiveTab] = useState<'chart' | 'logs'>('chart');
 

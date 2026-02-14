@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { PrivyProvider } from '@privy-io/react-auth';
 import { WagmiProvider, createConfig, http } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -15,6 +16,17 @@ export const wagmiConfig = createConfig({
 });
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Prevent hydration mismatch and context warnings by only rendering children once mounted
+    if (!mounted) {
+        return null;
+    }
+
     return (
         <PrivyProvider
             appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ''}
