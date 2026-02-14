@@ -57,10 +57,10 @@ export const OrderForm = () => {
 
         try {
             const provider = await wallet.getEthereumProvider();
-            const laneId = await processTrade(tradeParams, provider);
+            const result = await processTrade(tradeParams, provider);
 
-            if (laneId) {
-                fillOrder(orderId, laneId);
+            if (result) {
+                fillOrder(orderId, result.laneId, result.amountInWei, result.priceInX18);
             } else {
                 alert("Execution failed: All lanes are currently busy. Parallel limit reached.");
             }
@@ -101,8 +101,8 @@ export const OrderForm = () => {
             addOrder(newOrder);
 
             // Fire and forget (parallel)
-            processTrade(tradeParams, provider).then(laneId => {
-                if (laneId) fillOrder(orderId, laneId);
+            processTrade(tradeParams, provider).then(result => {
+                if (result) fillOrder(orderId, result.laneId, result.amountInWei, result.priceInX18);
             });
         }
     };

@@ -70,17 +70,28 @@ export const useMarketStore = create<MarketDataState>((set, get) => ({
     generateMockData: () => {
         // Generate initial orderbook
         const basePrice = get().price;
-        const bids = Array.from({ length: 15 }).map((_, i) => ({
-            price: basePrice - (i * 0.5 + Math.random()),
-            amount: Math.random() * 5,
-            total: 0 // calculate later
-        })).sort((a, b) => b.price - a.price);
 
-        const asks = Array.from({ length: 15 }).map((_, i) => ({
-            price: basePrice + (i * 0.5 + Math.random()),
-            amount: Math.random() * 5,
-            total: 0
-        })).sort((a, b) => a.price - b.price);
+        let cumulativeBidTotal = 0;
+        const bids = Array.from({ length: 15 }).map((_, i) => {
+            const amount = Math.random() * 5;
+            cumulativeBidTotal += amount;
+            return {
+                price: basePrice - (i * 0.5 + Math.random()),
+                amount,
+                total: cumulativeBidTotal
+            };
+        }).sort((a, b) => b.price - a.price);
+
+        let cumulativeAskTotal = 0;
+        const asks = Array.from({ length: 15 }).map((_, i) => {
+            const amount = Math.random() * 5;
+            cumulativeAskTotal += amount;
+            return {
+                price: basePrice + (i * 0.5 + Math.random()),
+                amount,
+                total: cumulativeAskTotal
+            };
+        }).sort((a, b) => a.price - b.price);
 
         set({ bids, asks });
     }
